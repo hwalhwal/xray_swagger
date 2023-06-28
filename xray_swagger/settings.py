@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     log_level: LogLevel = LogLevel.INFO
 
     # Variables for the database
-    db_host: str = "localhost"
+    db_host: str = "xray_swagger-db"
     db_port: int = 5432
     db_user: str = "xray_swagger"
     db_pass: str = "xray_swagger"

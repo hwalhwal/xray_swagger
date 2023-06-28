@@ -43,7 +43,7 @@ services:
   migrator:
     image: xray_swagger:${XRAY_SWAGGER_VERSION:-latest}
     restart: "no"
-    command: aerich upgrade
+    command: sh -c "aerich init -t xray_swagger.db.config.TORTOISE_CONFIG && aerich init-db &&  aerich upgrade"
     environment:
       XRAY_SWAGGER_DB_HOST: xray_swagger-db
       XRAY_SWAGGER_DB_PORT: 5432
