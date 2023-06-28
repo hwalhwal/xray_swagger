@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: prod
+    image: xray_swagger:${XRAY_SWAGGER_VERSION:-latest}
+    restart: always
+    env_file:
+    - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      XRAY_SWAGGER_HOST: 0.0.0.0
+      XRAY_SWAGGER_DB_HOST: xray_swagger-db
+      XRAY_SWAGGER_DB_PORT: 5432
+      XRAY_SWAGGER_DB_USER: xray_swagger
+      XRAY_SWAGGER_DB_PASS: xray_swagger
+      XRAY_SWAGGER_DB_BASE: xray_swagger
+      XRAY_SWAGGER_REDIS_HOST: xray_swagger-redis
+
+  db:
+    image: postgres:13.8-bullseye
+    hostname: xray_swagger-db
+    environment:
+      POSTGRES_PASSWORD: "xray_swagger"
+      POSTGRES_USER: "xray_swagger"
+      POSTGRES_DB: "xray_swagger"
+    volumes:
+    - xray_swagger-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U xray_swagger
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: xray_swagger:${XRAY_SWAGGER_VERSION:-latest}
+    restart: "no"
+    command: aerich upgrade
+    environment:
+      XRAY_SWAGGER_DB_HOST: xray_swagger-db
+      XRAY_SWAGGER_DB_PORT: 5432
+      XRAY_SWAGGER_DB_USER: xray_swagger
+      XRAY_SWAGGER_DB_PASS: xray_swagger
+      XRAY_SWAGGER_DB_BASE: xray_swagger
+    depends_on:
+      db:
+        condition: service_healthy
+
+  redis:
+    image: bitnami/redis:6.2.5
+    hostname: "xray_swagger-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+
+
+volumes:
+  xray_swagger-db-data:
+    name: xray_swagger-db-data
