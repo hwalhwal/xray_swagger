@@ -14,6 +14,11 @@ services:
       # Enables autoreload.
       XRAY_SWAGGER_RELOAD: "True"
 
+  migrator:
+    # command: sh -c "aerich init -t xray_swagger.db.config.TORTOISE_CONFIG && aerich init-db &&  aerich upgrade"
+    volumes:
+    - .:/app/src/
+
   pgadmin:
     image: dpage/pgadmin4:7.3
     environment:
@@ -22,9 +27,12 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     volumes:
     - pgadmin:/var/lib/pgadmin
+    - ./servers.json:/pgadmin4/servers.json
     ports:
     - "${PGADMIN_PORT:-5050}:80"
     restart: unless-stopped
+    depends_on:
+    - db
 
 
 volumes:
