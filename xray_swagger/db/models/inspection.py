@@ -14,6 +14,19 @@ class Algorithm_Name(str, Enum):
     AL_009 = "Al009"
 
 
+class Inspection_Settings(models.Model):
+
+    id = fields.IntField(pk=True)
+    mode = fields.CharField(max_length=255)
+    ng_behavior = fields.CharField(max_length=255)
+    ng_image_store_policy = fields.CharField(max_length=255)
+    image_trim = fields.CharField(max_length=255, null=True)
+    product: fields.ForeignKeyRelation = fields.ForeignKeyField(
+        model_name="models.Product",
+        related_name="inspection_settings",
+    )
+
+
 class Inspection_Algorithm(models.Model):
 
     id = fields.IntField(pk=True)
@@ -32,6 +45,10 @@ class Inspection_Algorithm_Rule_Set(TimestampMixin, models.Model):
 
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255, null=True)
+    product: fields.ForeignKeyRelation = fields.ForeignKeyField(
+        model_name="models.Product",
+        related_name="inspection_algorithm_ruleset",
+    )
 
 
 class Rule_Set_Usage(TimestampMixin, models.Model):

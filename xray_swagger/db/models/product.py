@@ -9,23 +9,37 @@ WHERE
 
 from tortoise import fields, models
 
+from xray_swagger.db.models.inspection import Inspection_Settings
 from xray_swagger.db.models.mixins import TimestampMixin
+from xray_swagger.db.models.peripherals import (
+    Conveyor,
+    Metal_Detector,
+    Rejector,
+    Xray_Detector,
+    Xray_Emitter,
+)
 
 
 class Product(TimestampMixin, models.Model):
 
-    id = fields.UUIDField(pk=True)
+    id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255, null=False, unique=True)
+    inspection_algorithm_ruleset = fields.ReverseRelation[
+        "Inspection_Algorithm_Rule_Set"
+    ]
+    inspection_settings: fields.ReverseRelation["Inspection_Settings"]
+    conveyor_settings: fields.ReverseRelation["Conveyor"]
+    rejector_settings: fields.ReverseRelation["Rejector"]
+    xray_emitter_settings: fields.ReverseRelation["Xray_Emitter"]
+    xray_detector_settings: fields.ReverseRelation["Xray_Detector"]
+    metal_detector_settings: fields.ReverseRelation["Metal_Detector"]
 
 
 class Product_Inspection_Session(models.Model):
 
-    id = fields.UUIDField(pk=True)
+    id = fields.IntField(pk=True)
     product = fields.ForeignKeyField(
         model_name="models.Product",
-    )
-    inspection_algorithm_ruleset = fields.ForeignKeyField(
-        model_name="models.Inspection_Algorithm_Rule_Set",
     )
     image_s3_key = fields.CharField(max_length=255, null=False, unique=True)
     session_started_at = fields.DatetimeField(null=False)
