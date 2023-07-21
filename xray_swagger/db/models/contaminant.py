@@ -1,6 +1,10 @@
 from enum import Enum, auto
 
-from tortoise import fields, models
+from peewee import *
+from playhouse.postgres_ext import JSONField
+
+from xray_swagger.db.database import db
+from xray_swagger.db.models.product import Product_Inspection_Session
 
 
 class Contaminant_Category(Enum):
@@ -22,16 +26,20 @@ class Shape(Enum):
     POLYGON = auto()
 
 
-class Contaminant(models.Model):
+class Contaminant(Model):
 
-    id = fields.IntField(pk=True)
-    category = fields.IntEnumField(
-        enum_type=Contaminant_Category,
+    id = IntegerField(primary_key=True)
+
+    category = CharField(
+        max_length=64,
         description="이물의 카테고리를 지정한다",
     )
-    shape = fields.IntEnumField(enum_type=Shape, description="이물 표시 영역의 모양")
-    coordinates = fields.JSONField()
-    product_inspection_session = fields.ForeignKeyField(
-        model_name="models.Product_Inspection_Session",
-        related_name="product_contaminants",
+    shape = CharField(max_length=64, description="이물 표시 영역의 모양")
+    coordinates = JSONField()
+    product_inspection_session = ForeignKeyField(
+        model=Product_Inspection_Session,
+        backref="product_contaminants",
     )
+
+    class Meta:
+        database = db

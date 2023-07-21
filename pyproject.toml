@@ -3,10 +3,10 @@ name = "xray_swagger"
 version = "0.1.0"
 description = ""
 authors = [
-
+    "Hwal Choe <hwal.choe@nextalb.co.kr>",
 ]
 maintainers = [
-
+    "hwal.choe@nextalb.co.kr",
 ]
 readme = "README.md"
 
@@ -17,12 +17,13 @@ uvicorn = { version = "^0.20.0", extras = ["standard"] }
 pydantic = {version = "^1.10.4", extras = ["dotenv"]}
 yarl = "^1.8.2"
 ujson = "^5.7.0"
-tortoise-orm = "^0.19.2"
-aerich = "^0.7.1"
 asyncpg = "^0.27.0"
 redis = {version = "^4.4.2", extras = ["hiredis"]}
 aiofiles = "^22.1.0"
 httptools = "^0.5.0"
+peewee = "^3.16.2"
+peewee-migrate = "^1.11.1"
+psycopg2-binary = "^2.9.6"
 
 
 [tool.poetry.dev-dependencies]

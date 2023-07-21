@@ -1,11 +1,11 @@
-from tortoise import fields, models
+from peewee import *
 
 
-class DummyModel(models.Model):
+class DummyModel(Model):
     """Model for demo purpose."""
 
-    id = fields.IntField(pk=True)
-    name = fields.CharField(max_length=200)  # noqa: WPS432
+    id = IntegerField(primary_key=True)
+    name = CharField(max_length=200)  # noqa: WPS432
 
     def __str__(self) -> str:
         return self.name

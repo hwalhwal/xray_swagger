@@ -34,6 +34,8 @@ services:
     volumes:
     - xray_swagger-db-data:/var/lib/postgresql/data
     restart: always
+    ports:
+    - 5432:5432
     healthcheck:
       test: pg_isready -U xray_swagger
       interval: 2s

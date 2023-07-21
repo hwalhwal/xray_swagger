@@ -1,8 +1,10 @@
 from enum import Enum
 
-from tortoise import fields, models
+from peewee import *
+from playhouse.postgres_ext import JSONField
 
-from .mixins import TimestampMixin
+from xray_swagger.db.models.mixins import TimestampMixin
+from xray_swagger.db.models.product import Product
 
 
 class Algorithm_Name(str, Enum):
@@ -14,51 +16,52 @@ class Algorithm_Name(str, Enum):
     AL_009 = "Al009"
 
 
-class Inspection_Settings(models.Model):
+class Inspection_Settings(Model):
 
-    id = fields.IntField(pk=True)
-    mode = fields.CharField(max_length=255)
-    ng_behavior = fields.CharField(max_length=255)
-    ng_image_store_policy = fields.CharField(max_length=255)
-    image_trim = fields.CharField(max_length=255, null=True)
-    product: fields.ForeignKeyRelation = fields.ForeignKeyField(
-        model_name="models.Product",
-        related_name="inspection_settings",
+    id = IntegerField(primary_key=True)
+    mode = CharField(max_length=255)
+    ng_behavior = CharField(max_length=255)
+    ng_image_store_policy = CharField(max_length=255)
+    image_trim = CharField(max_length=255, null=True)
+    product = ForeignKeyField(
+        model=Product,
+        backref="inspection_settings",
     )
 
 
-class Inspection_Algorithm(models.Model):
+class Inspection_Algorithm(Model):
 
-    id = fields.IntField(pk=True)
-    name = fields.CharEnumField(enum_type=Algorithm_Name, null=False)
-    schema = fields.JSONField()  # JSON Schema로 파라미터별 이름, 설명, constraint 정의
-
-
-class Inspection_Algorithm_Instance(TimestampMixin, models.Model):
-
-    id = fields.IntField(pk=True)
-    algorithm = fields.ForeignKeyField(model_name="models.Inspection_Algorithm")
-    parameters = fields.JSONField()
+    id = IntegerField(primary_key=True)
+    # name = fields.CharEnumField(enum_type=Algorithm_Name, null=False)
+    name = CharField(max_length=256)
+    schema = JSONField()  # JSON Schema로 파라미터별 이름, 설명, constraint 정의
 
 
-class Inspection_Algorithm_Rule_Set(TimestampMixin, models.Model):
+class Inspection_Algorithm_Instance(TimestampMixin, Model):
 
-    id = fields.IntField(pk=True)
-    name = fields.CharField(max_length=255, null=True)
-    product: fields.ForeignKeyRelation = fields.ForeignKeyField(
-        model_name="models.Product",
-        related_name="inspection_algorithm_ruleset",
+    id = IntegerField(primary_key=True)
+    algorithm = ForeignKeyField(model=Inspection_Algorithm)
+    parameters = JSONField()
+
+
+class Inspection_Algorithm_Rule_Set(TimestampMixin, Model):
+
+    id = IntegerField(primary_key=True)
+    name = CharField(max_length=255, null=True)
+    product = ForeignKeyField(
+        model=Product,
+        backref="inspection_algorithm_ruleset",
     )
 
 
-class Rule_Set_Usage(TimestampMixin, models.Model):
+class Rule_Set_Usage(TimestampMixin, Model):
 
-    inspection_algorithm_ruleset = fields.ForeignKeyField(
-        model_name="models.Inspection_Algorithm_Rule_Set",
-        on_delete=fields.RESTRICT,
+    inspection_algorithm_ruleset = ForeignKeyField(
+        model=Inspection_Algorithm_Rule_Set,
+        on_delete="RESTRICT",
     )
-    inspection_algorithm_instance = fields.ForeignKeyField(
-        model_name="models.Inspection_Algorithm_Instance",
-        on_delete=fields.RESTRICT,
+    inspection_algorithm_instance = ForeignKeyField(
+        model=Inspection_Algorithm_Instance,
+        on_delete="RESTRICT",
     )
-    order = fields.SmallIntField()
+    order = SmallIntegerField()

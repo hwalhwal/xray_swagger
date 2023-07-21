@@ -1,7 +1,12 @@
-from tortoise import fields
+from datetime import datetime
+
+from peewee import DateTimeField
 
 
 class TimestampMixin:
-    created_at = fields.DatetimeField(null=True, auto_now_add=True)
-    modified_at = fields.DatetimeField(null=True, auto_now=True)
-    deleted_at = fields.DatetimeField(null=True)
+    created_at = DateTimeField(null=True, default=datetime.now)
+    modified_at = DateTimeField(
+        null=True,
+        default=datetime.now,
+    )  # on update CURRENT_TIMESTAMP
+    deleted_at = DateTimeField(null=True)

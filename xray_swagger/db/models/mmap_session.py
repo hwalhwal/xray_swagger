@@ -1,10 +1,10 @@
-from tortoise import fields, models
+from peewee import *
 
 
-class Mmap_Session(models.Model):
+class Mmap_Session(Model):
 
-    id = fields.IntField(pk=True)
-    s3_key = fields.CharField(max_length=255, null=False, unique=True)
-    session_started_at = fields.DatetimeField(null=False)
-    session_ended_at = fields.DatetimeField(null=False)
-    preservation = fields.BooleanField()
+    id = IntegerField(primary_key=True)
+    s3_key = CharField(max_length=255, null=False, unique=True)
+    session_started_at = DateTimeField(null=False)
+    session_ended_at = DateTimeField(null=False)
+    preservation = BooleanField()
