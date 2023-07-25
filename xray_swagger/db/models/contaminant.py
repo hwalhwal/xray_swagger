@@ -1,6 +1,11 @@
 from enum import Enum, auto
 
-from tortoise import fields, models
+from sqlalchemy import JSON, Column
+from sqlalchemy import Enum as EnumField
+from sqlalchemy import ForeignKey, Integer
+from sqlalchemy.orm import relationship
+
+from xray_swagger.db.base import Base
 
 
 class Contaminant_Category(Enum):
@@ -22,16 +27,18 @@ class Shape(Enum):
     POLYGON = auto()
 
 
-class Contaminant(models.Model):
+class Contaminant(Base):
 
-    id = fields.IntField(pk=True)
-    category = fields.IntEnumField(
-        enum_type=Contaminant_Category,
-        description="이물의 카테고리를 지정한다",
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    category = Column(EnumField(Contaminant_Category), comment="이물의 카테고리를 지정한다")
+    shape = Column(EnumField(Shape), comment="이물 표시 영역의 모양")
+    coordinates = Column(JSON)
+    product_inspection_session_id = Column(
+        Integer,
+        ForeignKey("product_inspection_session.id"),
+        nullable=False,
     )
-    shape = fields.IntEnumField(enum_type=Shape, description="이물 표시 영역의 모양")
-    coordinates = fields.JSONField()
-    product_inspection_session = fields.ForeignKeyField(
-        model_name="models.Product_Inspection_Session",
-        related_name="product_contaminants",
+    product_inspection_session = relationship(
+        "Product_Inspection_Session",
+        back_populates="contaminants",
     )

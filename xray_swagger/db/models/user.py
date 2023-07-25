@@ -1,22 +1,25 @@
-from tortoise import fields, models
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy.sql import func
+
+from xray_swagger.db.base import Base
 
 
-class User(models.Model):
+class User(Base):
 
-    id = fields.IntField(pk=True)
-    username = fields.CharField(max_length=200, null=False, unique=True)
-    firstname = fields.CharField(max_length=128, null=False)
-    lastname = fields.CharField(max_length=128, null=False)
-    password = fields.CharField(max_length=128, null=False)
-    phone_number = fields.CharField(max_length=128, null=False)
-    job_title = fields.CharField(max_length=128, null=False)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    username = Column(String(255), nullable=False, unique=True)
+    firstname = Column(String(128), nullable=False)
+    lastname = Column(String(128), nullable=False)
+    password = Column(String(128), nullable=False)
+    phone_number = Column(String(128), nullable=False)
+    job_title = Column(String(128), nullable=False)
 
-    date_joined = fields.DatetimeField(auto_now_add=True)
-    last_signin = fields.DatetimeField(auto_now=True)
-    deleted_at = fields.DatetimeField(default=None)
+    date_joined = Column(DateTime, default=func.now())
+    last_signin = Column(DateTime, default=func.now())
+    deleted_at = Column(DateTime, default=None)
 
-    is_staff = fields.BooleanField(default=False)
-    is_superuser = fields.BooleanField(default=False)
+    is_staff = Column(Boolean, default=False)
+    is_superuser = Column(Boolean, default=False)
 
     def __str__(self) -> str:
         return self.name
