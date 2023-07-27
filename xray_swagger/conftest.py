@@ -1,21 +1,23 @@
 from typing import Any, AsyncGenerator
 
-import nest_asyncio
 import pytest
 from fakeredis import FakeServer
 from fakeredis.aioredis import FakeConnection
 from fastapi import FastAPI
 from httpx import AsyncClient
 from redis.asyncio import ConnectionPool
-from tortoise import Tortoise
-from tortoise.contrib.test import finalizer, initializer
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
-from xray_swagger.db.config import MODELS_MODULES, TORTOISE_CONFIG
+from xray_swagger.db.dependencies import get_db_session
+from xray_swagger.db.utils import create_database, drop_database
 from xray_swagger.services.redis.dependency import get_redis_pool
 from xray_swagger.settings import settings
 from xray_swagger.web.application import get_app
-
-nest_asyncio.apply()
 
 
 @pytest.fixture(scope="session")
@@ -28,24 +30,59 @@ def anyio_backend() -> str:
     return "asyncio"
 
 
-@pytest.fixture(autouse=True)
-async def initialize_db() -> AsyncGenerator[None, None]:
+@pytest.fixture(scope="session")
+async def _engine() -> AsyncGenerator[AsyncEngine, None]:
     """
-    Initialize models and database.
+    Create engine and databases.
 
-    :yields: Nothing.
+    :yield: new engine.
     """
-    initializer(
-        MODELS_MODULES,
-        db_url=str(settings.db_url),
-        app_label="models",
+    from xray_swagger.db.meta import meta  # noqa: WPS433
+    from xray_swagger.db.models import load_all_models  # noqa: WPS433
+
+    load_all_models()
+
+    await create_database()
+
+    engine = create_async_engine(str(settings.db_url))
+    async with engine.begin() as conn:
+        await conn.run_sync(meta.create_all)
+
+    try:
+        yield engine
+    finally:
+        await engine.dispose()
+        await drop_database()
+
+
+@pytest.fixture
+async def dbsession(
+    _engine: AsyncEngine,
+) -> AsyncGenerator[AsyncSession, None]:
+    """
+    Get session to database.
+
+    Fixture that returns a SQLAlchemy session with a SAVEPOINT, and the rollback to it
+    after the test completes.
+
+    :param _engine: current engine.
+    :yields: async session.
+    """
+    connection = await _engine.connect()
+    trans = await connection.begin()
+
+    session_maker = async_sessionmaker(
+        connection,
+        expire_on_commit=False,
     )
-    await Tortoise.init(config=TORTOISE_CONFIG)
+    session = session_maker()
 
-    yield
-
-    await Tortoise.close_connections()
-    finalizer()
+    try:
+        yield session
+    finally:
+        await session.close()
+        await trans.rollback()
+        await connection.close()
 
 
 @pytest.fixture
@@ -66,6 +103,7 @@ async def fake_redis_pool() -> AsyncGenerator[ConnectionPool, None]:
 
 @pytest.fixture
 def fastapi_app(
+    dbsession: AsyncSession,
     fake_redis_pool: ConnectionPool,
 ) -> FastAPI:
     """
@@ -74,6 +112,7 @@ def fastapi_app(
     :return: fastapi app with mocked dependencies.
     """
     application = get_app()
+    application.dependency_overrides[get_db_session] = lambda: dbsession
     application.dependency_overrides[get_redis_pool] = lambda: fake_redis_pool
     return application  # noqa: WPS331
 
