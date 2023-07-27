@@ -57,7 +57,7 @@ class SettingsProductChangelog(Base):
         server_default=func.current_timestamp(),
     )
     patch = Column(Text, nullable=False)
-    inspection_sessions = relationship(
+    settings_product_usage = relationship(
         "SettingsProductUsageLog",
         back_populates="used_setting",
     )

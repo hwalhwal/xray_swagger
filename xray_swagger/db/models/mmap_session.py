@@ -23,13 +23,19 @@ class MmapPointer(Base):
         ForeignKey("mmap_session.uuid"),
         nullable=False,
     )
-    start_mmap_session = relationship("MmapSession")
+    start_mmap_session = relationship(
+        "MmapSession",
+        foreign_keys=[start_mmap_session_uuid],
+    )
     start_mmap_session_ptr = Column(Integer, nullable=False)
 
     end_mmap_session_uuid = Column(
         UUID,
         ForeignKey("mmap_session.uuid"),
-        nullable=False,
+        nullable=True,
     )
-    end_mmap_session = relationship("MmapSession")
+    end_mmap_session = relationship(
+        "MmapSession",
+        foreign_keys=[end_mmap_session_uuid],
+    )
     end_mmap_session_ptr = Column(Integer, nullable=False)

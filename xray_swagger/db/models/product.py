@@ -18,6 +18,7 @@ class Product(TimestampMixin, AuthorMixin, Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(255), nullable=False, unique=True)
+    inspection_sessions = relationship("InspectionSession")
 
 
 class InspectionSession(Base):
@@ -36,7 +37,7 @@ class InspectionSession(Base):
 
     defects = relationship(
         "Defect",
-        back_populates="product_inspection_session",
+        back_populates="inspection_session",
     )
     used_settings = relationship(
         "SettingsProductUsageLog",
@@ -50,5 +51,11 @@ class SettingsProductUsageLog(Base):
         primary_key=True,
     )
     spc_id = Column(ForeignKey("settings_product_changelog.id"), primary_key=True)
-    inspection_session = relationship("Child", back_populates="used_settings")
-    used_setting = relationship("Parent", back_populates="inspection_sessions")
+    inspection_session = relationship(
+        "InspectionSession",
+        back_populates="used_settings",
+    )
+    used_setting = relationship(
+        "SettingsProductChangelog",
+        back_populates="settings_product_usage",
+    )
