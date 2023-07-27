@@ -4,9 +4,8 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import UJSONResponse
 from fastapi.staticfiles import StaticFiles
-from tortoise.contrib.fastapi import register_tortoise
 
-from xray_swagger.db.config import TORTOISE_CONFIG
+from xray_swagger.logging import configure_logging
 from xray_swagger.web.api.router import api_router
 from xray_swagger.web.lifetime import register_shutdown_event, register_startup_event
 
@@ -21,6 +20,7 @@ def get_app() -> FastAPI:
 
     :return: application.
     """
+    configure_logging()
     app = FastAPI(
         title="xray_swagger",
         version=metadata.version("xray_swagger"),
@@ -42,13 +42,6 @@ def get_app() -> FastAPI:
         "/static",
         StaticFiles(directory=APP_ROOT / "static"),
         name="static",
-    )
-
-    # Configures tortoise orm.
-    register_tortoise(
-        app,
-        config=TORTOISE_CONFIG,
-        add_exception_handlers=True,
     )
 
     return app
