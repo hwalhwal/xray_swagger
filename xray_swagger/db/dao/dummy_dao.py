@@ -1,10 +1,18 @@
 from typing import List, Optional
 
+from fastapi import Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from xray_swagger.db.dependencies import get_db_session
 from xray_swagger.db.models.dummy_model import DummyModel
 
 
 class DummyDAO:
     """Class for accessing dummy table."""
+
+    def __init__(self, session: AsyncSession = Depends(get_db_session)) -> None:
+        self.session = session
 
     async def create_dummy_model(self, name: str) -> None:
         """
@@ -12,7 +20,7 @@ class DummyDAO:
 
         :param name: name of a dummy.
         """
-        await DummyModel.create(name=name)
+        self.session.add(DummyModel(name=name))
 
     async def get_all_dummies(self, limit: int, offset: int) -> List[DummyModel]:
         """
@@ -22,7 +30,11 @@ class DummyDAO:
         :param offset: offset of dummies.
         :return: stream of dummies.
         """
-        return await DummyModel.all().offset(offset).limit(limit)
+        raw_dummies = await self.session.execute(
+            select(DummyModel).limit(limit).offset(offset),
+        )
+
+        return list(raw_dummies.scalars().fetchall())
 
     async def filter(self, name: Optional[str] = None) -> List[DummyModel]:
         """
@@ -31,7 +43,8 @@ class DummyDAO:
         :param name: name of dummy instance.
         :return: dummy models.
         """
-        query = DummyModel.all()
+        query = select(DummyModel)
         if name:
-            query = query.filter(name=name)
-        return await query
+            query = query.where(DummyModel.name == name)
+        rows = await self.session.execute(query)
+        return list(rows.scalars().fetchall())
