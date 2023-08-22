@@ -151,3 +151,6 @@ docker run -p "5432:5432" -e "POSTGRES_PASSWORD=xray_swagger" -e "POSTGRES_USER=
 ```bash
 pytest -vv .
 ```
+
+
+![Alt text](image.png)

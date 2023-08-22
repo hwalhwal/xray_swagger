@@ -2,7 +2,7 @@
     "Servers": {
         "1": {
             "Name": "xray_swagger",
-            "Group": "Server Group 1",
+            "Group": "Servers",
             "Port": 5432,
             "Username": "xray_swagger",
             "Host": "db",
