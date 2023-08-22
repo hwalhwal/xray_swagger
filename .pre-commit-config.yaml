@@ -23,14 +23,14 @@ repos:
     - --preserve-quotes
     - --indent=2
 
-- repo: local
+- repo: https://github.com/psf/black
+  rev: 23.7.0
   hooks:
   - id: black
-    name: Format with Black
-    entry: poetry run black
-    language: system
-    types: [python]
+    language_version: python3.11
 
+- repo: local
+  hooks:
   - id: autoflake
     name: autoflake
     entry: poetry run autoflake
@@ -43,6 +43,8 @@ repos:
     entry: poetry run isort
     language: system
     types: [python]
+
+exclude: 'migrations/.*|tests/.*'
 
   # - id: flake8
   #   name: Check with Flake8

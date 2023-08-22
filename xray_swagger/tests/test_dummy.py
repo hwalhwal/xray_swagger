@@ -3,6 +3,7 @@ import uuid
 import pytest
 from fastapi import FastAPI
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from xray_swagger.db.dao.dummy_dao import DummyDAO
@@ -12,6 +13,7 @@ from xray_swagger.db.dao.dummy_dao import DummyDAO
 async def test_creation(
     fastapi_app: FastAPI,
     client: AsyncClient,
+    dbsession: AsyncSession,
 ) -> None:
     """Tests dummy instance creation."""
     url = fastapi_app.url_path_for("create_dummy_model")
@@ -23,7 +25,7 @@ async def test_creation(
         },
     )
     assert response.status_code == status.HTTP_200_OK
-    dao = DummyDAO()
+    dao = DummyDAO(dbsession)
     instances = await dao.filter(name=test_name)
     assert instances[0].name == test_name
 
@@ -32,9 +34,10 @@ async def test_creation(
 async def test_getting(
     fastapi_app: FastAPI,
     client: AsyncClient,
+    dbsession: AsyncSession,
 ) -> None:
     """Tests dummy instance retrieval."""
-    dao = DummyDAO()
+    dao = DummyDAO(dbsession)
     test_name = uuid.uuid4().hex
     await dao.create_dummy_model(name=test_name)
     url = fastapi_app.url_path_for("get_dummy_models")
