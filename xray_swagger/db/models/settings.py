@@ -29,7 +29,11 @@ class SettingsProduct(TimestampMixin, AuthorMixin, Base):
     version = Column(Integer, nullable=False, default=0)  # 세팅변경시 ++
     value = Column(JSON, nullable=True)  # setting_template 기반으로
     product_id = Column(Integer, ForeignKey("product.id"), nullable=False)
-    device_id = Column(Integer, ForeignKey("device.id"), nullable=True)
+    product = relationship("Product", back_populates="settings")
+    changelogs = relationship(
+        "SettingsProductChangelog",
+        back_populates="settings_product",
+    )
 
 
 class SettingsGlobal(TimestampMixin, AuthorMixin, Base):
@@ -37,8 +41,8 @@ class SettingsGlobal(TimestampMixin, AuthorMixin, Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     setting_param_name = Column(String(255), nullable=False)
     authlevel = Column(Enum(AuthLevel), nullable=False)
+    json_schema = Column(JSON, nullable=False)
     value = Column(JSON, nullable=True)
-    device_id = Column(Integer, ForeignKey("device.id"), nullable=True)
 
 
 class SettingsProductChangelog(Base):
@@ -50,6 +54,7 @@ class SettingsProductChangelog(Base):
         ForeignKey("settings_product.id"),
         nullable=False,
     )
+    settings_product = relationship(SettingsProduct, back_populates="changelogs")
     editor_id = Column(Integer, ForeignKey("user.id"), nullable=False)
     created_at = Column(
         DateTime,
@@ -57,7 +62,3 @@ class SettingsProductChangelog(Base):
         server_default=func.current_timestamp(),
     )
     patch = Column(Text, nullable=False)
-    settings_product_usage = relationship(
-        "SettingsProductUsageLog",
-        back_populates="used_setting",
-    )

@@ -12,7 +12,7 @@ class Device(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(255), nullable=False)
-    code = Column(String(255), nullable=False)
     model_series = Column(String(255), nullable=False)
+    code = Column(String(255), nullable=False)
     manufacturer = Column(String(255), nullable=False)
     specifications = Column(JSON)
