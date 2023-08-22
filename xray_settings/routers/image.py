@@ -30,7 +30,7 @@ class NGImageRetentionPeriod(RootModel):
     )
 
 
-class InspectionImagePreviewPostprocessing(BaseModel):
+class ImageInspectionPreviewPostprocessing(BaseModel):
     """
     NG 이미지 혹은 정상이미지를 preview할 때 시인성을 위해 후처리하는 로직을 저장
     """

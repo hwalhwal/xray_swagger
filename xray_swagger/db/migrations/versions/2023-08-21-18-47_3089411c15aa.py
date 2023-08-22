@@ -21,7 +21,7 @@ from xray_settings.routers.inspections import InspectionMode, InspectionMethod, 
 from xray_settings.routers.contaminant.ai import AISettingContaminantDetection
 from xray_settings.routers.contaminant.rule import RuleDetectSettingTemplate
 from xray_settings.routers.rejector import RejectorDelayMS, RejectorOpenMS
-from xray_settings.routers.image import ImageGenerationSettings, ImageStoringOptionMultiselect, InspectionImagePreviewPostprocessing
+from xray_settings.routers.image import ImageGenerationSettings, ImageStoringOptionMultiselect, ImageInspectionPreviewPostprocessing
 from xray_settings.routers.preprocessor import PreprocessorCascadingFunctionSet
 from xray_settings.routers.contour import ContourDetectionSetting
 
@@ -201,7 +201,7 @@ def upgrade() -> None:
             {
                 "setting_param_name": "Image.InspectionPreviewPostprocessing",
                 "authlevel": AuthLevel.SUPERVISOR.name,
-                "setting_template": InspectionImagePreviewPostprocessing.model_json_schema(),
+                "setting_template": ImageInspectionPreviewPostprocessing.model_json_schema(),
             },
             {
                 "setting_param_name": "Preprocessor.Cascading",
