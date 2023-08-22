@@ -36,9 +36,7 @@ SmthThresholdDocstring_KO = """- **(※ 이물검출감도)**
     경계 값보다 10 \~ 20 정도 높게 설정하는 것이 좋습니다.
 """
 
-DetectionThresholdDocstring_KO = (
-    """- 이물로 검출되는 영상신호의 경계 값입니다. 기본 값은 10이며, 보통은 조정하지 않습니다."""
-)
+DetectionThresholdDocstring_KO = """- 이물로 검출되는 영상신호의 경계 값입니다. 기본 값은 10이며, 보통은 조정하지 않습니다."""
 
 DetectionAreaDocstring_KO = """- S/W가 이물임을 판단하는 최소 크기입니다.
     너무 작으면 정상제품의 NG오작동이 발생하고, 너무 크면 작은 이물이 검출되지 않을 수 있습니다.
@@ -85,9 +83,7 @@ BinaryThresholdDocstring_KO = """- **(※ 이물검출감도)**
     경계 값보다 10 \~ 20 정도 높게 설정하는 것이 좋습니다.
 """
 
-ErodeThresholdDocstring_KO = (
-    """- ***Erode Dim***의 경계 값을 결정합니다. 기본 값은 5이며, 일반적으로 조정하지 않습니다."""
-)
+ErodeThresholdDocstring_KO = """- ***Erode Dim***의 경계 값을 결정합니다. 기본 값은 5이며, 일반적으로 조정하지 않습니다."""
 DilateDimDocstring_KO = """- 이물 마킹의 굵기를 조절합니다. 기본 값은 3이며, 일반적으로 조정하지 않습니다."""
 
 

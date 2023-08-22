@@ -13,7 +13,6 @@ rule_router = APIRouter(prefix="/rules")
 
 
 class AlatHP(BaseModel):
-
     __doc__ = docstrings.AlatHPDocstring_KO
     model_config = ConfigDict(extra="forbid")
 
@@ -58,18 +57,13 @@ class AlatHP(BaseModel):
         title="Detection Area",
         description=docstrings.DetectionAreaDocstring_KO,
     )
-    MaskValue: conlist(
-        confloat(strict=True, ge=0.0, lt=1.0),
-        min_length=4,
-        max_length=4,
-    ) = Field(
+    MaskValue: conlist(confloat(strict=True, ge=0.0, lt=1.0), min_length=4, max_length=4) = Field(
         title="Mask Value",
         description=docstrings.MaskValueDocstring_KO,
     )
 
 
 class Al003e(BaseModel):
-
     __doc__ = docstrings.Al003eDocstring_KO
     model_config = ConfigDict(extra="forbid")
 
@@ -127,18 +121,13 @@ class Al003e(BaseModel):
         title="Detection Area",
         description=docstrings.DetectionAreaDocstring_KO,
     )
-    MaskValue: conlist(
-        confloat(strict=True, ge=0.0, lt=1.0),
-        min_length=4,
-        max_length=4,
-    ) = Field(
+    MaskValue: conlist(confloat(strict=True, ge=0.0, lt=1.0), min_length=4, max_length=4) = Field(
         title="Mask Value",
         description=docstrings.MaskValueDocstring_KO,
     )
 
 
 class Aldong1(BaseModel):
-
     __doc__ = docstrings.Aldong1Docstring_KO
     model_config = ConfigDict(extra="forbid")
 
@@ -189,11 +178,7 @@ class Aldong1(BaseModel):
         title="Detection Area",
         description=docstrings.DetectionAreaDocstring_KO,
     )
-    MaskValue: conlist(
-        confloat(strict=True, ge=0.0, lt=1.0),
-        min_length=4,
-        max_length=4,
-    ) = Field(
+    MaskValue: conlist(confloat(strict=True, ge=0.0, lt=1.0), min_length=4, max_length=4) = Field(
         title="Mask Value",
         description=docstrings.MaskValueDocstring_KO,
     )

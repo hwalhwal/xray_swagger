@@ -54,9 +54,10 @@ class MParam_apply_clahe(MParamBase):
         default=None,
         description="CLAHE의 클리핑 한계값. 기본값은 1입니다.",
     )
-    tile_grid_size: Optional[
-        conlist(item_type=float, min_length=2, max_length=2)
-    ] = Field(default=None, description="CLAHE의 타일 그리드 크기. 기본값은 (8, 8)입니다.")
+    tile_grid_size: Optional[conlist(item_type=float, min_length=2, max_length=2)] = Field(
+        default=None,
+        description="CLAHE의 타일 그리드 크기. 기본값은 (8, 8)입니다.",
+    )
 
 
 class MParam_apply_unsharp_mask(MParamBase):
