@@ -43,7 +43,7 @@ def upgrade() -> None:
         sa.Column("setting_param_name", sa.String(length=255), nullable=False),
         sa.Column(
             "authlevel",
-            sa.Enum("OPERATOR", "STAFF", "ENGINEER", name="authlevel"),
+            sa.Enum("OPERATOR", "SUPERVISOR", "ENGINEER", name="authlevel"),
             nullable=False,
         ),
         sa.Column("containers_affected", sa.JSON(), nullable=True),
@@ -64,7 +64,7 @@ def upgrade() -> None:
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column(
             "authlevel",
-            sa.Enum("OPERATOR", "STAFF", "ENGINEER", name="authlevel"),
+            sa.Enum("OPERATOR", "SUPERVISOR", "ENGINEER", name="authlevel"),
             nullable=True,
         ),
         sa.PrimaryKeyConstraint("id"),
@@ -108,7 +108,7 @@ def upgrade() -> None:
         sa.Column("setting_param_name", sa.String(length=255), nullable=False),
         sa.Column(
             "authlevel",
-            sa.Enum("OPERATOR", "STAFF", "ENGINEER", name="authlevel"),
+            sa.Enum("OPERATOR", "SUPERVISOR", "ENGINEER", name="authlevel"),
             nullable=False,
         ),
         sa.Column("json_schema", sa.JSON(), nullable=False),

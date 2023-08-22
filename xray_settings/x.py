@@ -10,12 +10,12 @@ from pydantic_core import ErrorDetails
 class AuthLevel(enum.Enum):
     """
     - OPERATOR = 0
-    - STAFF = 1
+    - SUPERVISOR = 1
     - ENGINEER = 2
     """
 
     OPERATOR = 0
-    STAFF = 1
+    SUPERVISOR = 1
     ENGINEER = 2
 
 

@@ -8,15 +8,11 @@ from xray_swagger.db.base import Base
 
 class AuthLevel(enum.Enum):
     OPERATOR = 0
-    STAFF = 1
+    SUPERVISOR = 1
     ENGINEER = 2
 
 
-# TODO: STAFF -> SUPERVISOR
-
-
 class User(Base):
-
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String(128), nullable=False, unique=True)
     password = Column(String(128), nullable=False)
