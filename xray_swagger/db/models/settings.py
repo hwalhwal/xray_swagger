@@ -1,24 +1,18 @@
-from sqlalchemy import JSON, Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Column, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 
+import xray_swagger.db.models.mixins as mixins
 from xray_swagger.db.base import Base
-from xray_swagger.db.models.mixins import AuthorMixin, TimestampMixin
 from xray_swagger.db.models.user import AuthLevel
 
 
 class SettingsProductParameter(Base):
-
     setting_param_name = Column(String(255), primary_key=True)
     authlevel = Column(Enum(AuthLevel), nullable=False)
-    containers_affected = Column(JSON, nullable=True)
-    setting_template = Column(JSON, nullable=True)
+    json_schema = Column(JSON, nullable=True)
 
 
-class SettingsProduct(TimestampMixin, AuthorMixin, Base):
-
-    # index를 product에 거는게 좋아보임. 혹은 필요없고.
-
+class SettingsProduct(mixins.TimestampMixin, mixins.AuthorMixin, Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     setting_param_name = Column(
         String(255),
@@ -34,10 +28,10 @@ class SettingsProduct(TimestampMixin, AuthorMixin, Base):
         "SettingsProductChangelog",
         back_populates="settings_product",
     )
+    __table_args__ = (Index("idx_product_param", product_id, setting_param_name, unique=True),)
 
 
-class SettingsGlobal(TimestampMixin, AuthorMixin, Base):
-
+class SettingsGlobal(mixins._ModifiedAt, mixins._LastEditorId, Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     setting_param_name = Column(String(255), nullable=False)
     authlevel = Column(Enum(AuthLevel), nullable=False)
@@ -45,7 +39,7 @@ class SettingsGlobal(TimestampMixin, AuthorMixin, Base):
     value = Column(JSON, nullable=True)
 
 
-class SettingsProductChangelog(Base):
+class SettingsProductChangelog(mixins._CreatedAt, mixins._LastEditorId, Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     version = Column(Integer, nullable=False)
     product_id = Column(Integer, ForeignKey("product.id"), nullable=False)
@@ -55,10 +49,4 @@ class SettingsProductChangelog(Base):
         nullable=False,
     )
     settings_product = relationship(SettingsProduct, back_populates="changelogs")
-    editor_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    created_at = Column(
-        DateTime,
-        nullable=False,
-        server_default=func.current_timestamp(),
-    )
     patch = Column(Text, nullable=False)

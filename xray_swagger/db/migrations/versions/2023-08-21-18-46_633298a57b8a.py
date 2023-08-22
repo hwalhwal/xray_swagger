@@ -46,8 +46,7 @@ def upgrade() -> None:
             sa.Enum("OPERATOR", "SUPERVISOR", "ENGINEER", name="authlevel"),
             nullable=False,
         ),
-        sa.Column("containers_affected", sa.JSON(), nullable=True),
-        sa.Column("setting_template", sa.JSON(), nullable=True),
+        sa.Column("json_schema", sa.JSON(), nullable=True),
         sa.PrimaryKeyConstraint("setting_param_name"),
     )
     op.create_table(
@@ -76,10 +75,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column(
-            "created_at",
-            sa.DateTime(),
-            server_default=sa.text("CURRENT_TIMESTAMP"),
-            nullable=False,
+            "created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
         ),
         sa.Column(
             "modified_at",
@@ -114,24 +110,12 @@ def upgrade() -> None:
         sa.Column("json_schema", sa.JSON(), nullable=False),
         sa.Column("value", sa.JSON(), nullable=True),
         sa.Column(
-            "created_at",
-            sa.DateTime(),
-            server_default=sa.text("CURRENT_TIMESTAMP"),
-            nullable=False,
-        ),
-        sa.Column(
             "modified_at",
             sa.DateTime(),
             server_default=sa.text("CURRENT_TIMESTAMP"),
             nullable=False,
         ),
-        sa.Column("deleted_at", sa.DateTime(), nullable=True),
-        sa.Column("creator_id", sa.Integer(), nullable=False),
         sa.Column("last_editor_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["creator_id"],
-            ["user.id"],
-        ),
         sa.ForeignKeyConstraint(
             ["last_editor_id"],
             ["user.id"],
@@ -153,12 +137,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("image_s3_key"),
     )
-    op.create_index(
-        op.f("ix_inspection_session_id"),
-        "inspection_session",
-        ["id"],
-        unique=False,
-    )
+    op.create_index(op.f("ix_inspection_session_id"), "inspection_session", ["id"], unique=False)
     op.create_table(
         "settings_product",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -167,10 +146,7 @@ def upgrade() -> None:
         sa.Column("value", sa.JSON(), nullable=True),
         sa.Column("product_id", sa.Integer(), nullable=False),
         sa.Column(
-            "created_at",
-            sa.DateTime(),
-            server_default=sa.text("CURRENT_TIMESTAMP"),
-            nullable=False,
+            "created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
         ),
         sa.Column(
             "modified_at",
@@ -199,18 +175,15 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_index(
+        "idx_product_param", "settings_product", ["product_id", "setting_param_name"], unique=True
+    )
     op.create_table(
         "defect",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column(
             "defect_category",
-            sa.Enum(
-                "CONTAMINANT",
-                "METAL",
-                "MISSING_PRODUCT",
-                "DAMAGED",
-                name="defectcategory",
-            ),
+            sa.Enum("CONTAMINANT", "METAL", "MISSING_PRODUCT", "DAMAGED", name="defectcategory"),
             nullable=False,
         ),
         sa.Column("inspection_module", sa.String(length=128), nullable=False),
@@ -252,16 +225,13 @@ def upgrade() -> None:
         sa.Column("version", sa.Integer(), nullable=False),
         sa.Column("product_id", sa.Integer(), nullable=False),
         sa.Column("settings_product_id", sa.Integer(), nullable=False),
-        sa.Column("editor_id", sa.Integer(), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(),
-            server_default=sa.text("CURRENT_TIMESTAMP"),
-            nullable=False,
-        ),
         sa.Column("patch", sa.Text(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+        ),
+        sa.Column("last_editor_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
-            ["editor_id"],
+            ["last_editor_id"],
             ["user.id"],
         ),
         sa.ForeignKeyConstraint(
@@ -274,28 +244,19 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.alter_column(
-        "dummy_model",
-        "name",
-        existing_type=sa.VARCHAR(length=200),
-        nullable=False,
-    )
+    op.alter_column("dummy_model", "name", existing_type=sa.VARCHAR(length=200), nullable=False)
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.alter_column(
-        "dummy_model",
-        "name",
-        existing_type=sa.VARCHAR(length=200),
-        nullable=True,
-    )
+    op.alter_column("dummy_model", "name", existing_type=sa.VARCHAR(length=200), nullable=True)
     op.drop_table("settings_product_changelog")
     op.drop_index(op.f("ix_mmap_pointer_id"), table_name="mmap_pointer")
     op.drop_table("mmap_pointer")
     op.drop_index(op.f("ix_defect_id"), table_name="defect")
     op.drop_table("defect")
+    op.drop_index("idx_product_param", table_name="settings_product")
     op.drop_table("settings_product")
     op.drop_index(op.f("ix_inspection_session_id"), table_name="inspection_session")
     op.drop_table("inspection_session")
@@ -308,4 +269,6 @@ def downgrade() -> None:
     op.drop_table("mmap_session")
     op.drop_index(op.f("ix_device_id"), table_name="device")
     op.drop_table("device")
+    op.execute(sa.text("DROP TYPE IF EXISTS authlevel;"))
+    op.execute(sa.text("DROP TYPE IF EXISTS defectcategory;"))
     # ### end Alembic commands ###
