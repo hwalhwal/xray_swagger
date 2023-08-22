@@ -61,6 +61,15 @@ warn_unused_ignores = false
 warn_return_any = false
 namespace_packages = true
 
+[tool.black]
+line-length = 100
+extend-exclude='''
+/(
+.venv
+|migrations
+)\
+'''
+
 # Remove this and add `types-redis`
 # when the issue https://github.com/python/typeshed/issues/8242 is resolved.
 [[tool.mypy.overrides]]
