@@ -1,9 +1,9 @@
 import starlette.status as stc
 from fastapi import APIRouter, HTTPException
 from fastapi.param_functions import Depends
+from loguru import logger
 
 from xray_swagger.db.dao.user_dao import UserDAO
-from xray_swagger.logging import logger
 
 from .schema import UserCreateDTO, UserModelDTO, UserUpdateDTO
 

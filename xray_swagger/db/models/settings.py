@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 
 import xray_swagger.db.models.mixins as mixins
 from xray_swagger.db.base import Base
+from xray_swagger.db.models.product import Product
 from xray_swagger.db.models.user import AuthLevel
 
 
@@ -23,7 +24,7 @@ class SettingsProduct(mixins.TimestampMixin, mixins.AuthorMixin, Base):
     version = Column(Integer, nullable=False, default=0)  # 세팅변경시 ++
     value = Column(JSON, nullable=True)  # setting_template 기반으로
     product_id = Column(Integer, ForeignKey("product.id"), nullable=False)
-    product = relationship("Product", back_populates="settings")
+    product = relationship(Product, back_populates="settings")
     changelogs = relationship(
         "SettingsProductChangelog",
         back_populates="settings_product",

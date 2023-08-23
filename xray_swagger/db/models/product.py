@@ -11,6 +11,7 @@ from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from xray_swagger.db.base import Base
+from xray_swagger.db.models.defect import Defect
 from xray_swagger.db.models.mixins import AuthorMixin, TimestampMixin
 
 
@@ -35,6 +36,6 @@ class InspectionSession(Base):
     system_error = Column(Text, nullable=True)
 
     defects = relationship(
-        "Defect",
+        Defect,
         back_populates="inspection_session",
     )
