@@ -13,7 +13,7 @@ class AuthLevel(enum.Enum):
 
 
 class User(Base):
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     username = Column(String(128), nullable=False, unique=True)
     password = Column(String(128), nullable=False)
 
@@ -27,6 +27,3 @@ class User(Base):
     deleted_at = Column(DateTime, default=None)
 
     authlevel = Column(Enum(AuthLevel), default=AuthLevel.OPERATOR)
-
-    def __str__(self) -> str:
-        return self.name

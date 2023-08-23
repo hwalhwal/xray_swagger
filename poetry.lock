@@ -966,13 +966,13 @@ socks = ["socksio (==1.*)"]
 
 [[package]]
 name = "identify"
-version = "2.5.26"
+version = "2.5.27"
 description = "File identification library for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "identify-2.5.26-py2.py3-none-any.whl", hash = "sha256:c22a8ead0d4ca11f1edd6c9418c3220669b3b7533ada0a0ffa6cc0ef85cf9b54"},
-    {file = "identify-2.5.26.tar.gz", hash = "sha256:7243800bce2f58404ed41b7c002e53d4d22bcf3ae1b7900c2d7aefd95394bf7f"},
+    {file = "identify-2.5.27-py2.py3-none-any.whl", hash = "sha256:fdb527b2dfe24602809b2201e033c2a113d7bdf716db3ca8e3243f735dcecaba"},
+    {file = "identify-2.5.27.tar.gz", hash = "sha256:287b75b04a0e22d727bc9a41f0d4f3c1bcada97490fa6eabb5b28f0e9097e733"},
 ]
 
 [package.extras]
@@ -1360,6 +1360,17 @@ files = [
 flake8 = ">=3.9.1"
 
 [[package]]
+name = "phonenumbers"
+version = "8.13.19"
+description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
+optional = false
+python-versions = "*"
+files = [
+    {file = "phonenumbers-8.13.19-py2.py3-none-any.whl", hash = "sha256:ba542f20f6dc83be8f127f240f9b5b7e7c1dec42aceff1879400d4dc0c781d81"},
+    {file = "phonenumbers-8.13.19.tar.gz", hash = "sha256:38180247697240ccedd74dec4bfbdbc22bb108b9c5f991f270ca3e41395e6f96"},
+]
+
+[[package]]
 name = "platformdirs"
 version = "3.10.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
@@ -1417,6 +1428,19 @@ files = [
     {file = "pycodestyle-2.8.0-py2.py3-none-any.whl", hash = "sha256:720f8b39dde8b293825e7ff02c475f3077124006db4f440dcbc9a20b76548a20"},
     {file = "pycodestyle-2.8.0.tar.gz", hash = "sha256:eddd5847ef438ea1c7870ca7eb78a9d47ce0cdb4851a5523949f2601d0cbbe7f"},
 ]
+
+[[package]]
+name = "pycountry"
+version = "22.3.5"
+description = "ISO country, subdivision, language, currency and script definitions and their translations"
+optional = false
+python-versions = ">=3.6, <4"
+files = [
+    {file = "pycountry-22.3.5.tar.gz", hash = "sha256:b2163a246c585894d808f18783e19137cb70a0c18fb36748dc01fc6f109c1646"},
+]
+
+[package.dependencies]
+setuptools = "*"
 
 [[package]]
 name = "pydantic"
@@ -1554,6 +1578,25 @@ files = [
 
 [package.dependencies]
 typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
+
+[[package]]
+name = "pydantic-extra-types"
+version = "2.0.0"
+description = "Extra Pydantic types."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pydantic_extra_types-2.0.0-py3-none-any.whl", hash = "sha256:63e5109f00815e71fff2b82090ff0523baef6b8a51889356fd984ef50c184e64"},
+    {file = "pydantic_extra_types-2.0.0.tar.gz", hash = "sha256:137ddacb168d95ea77591dbb3739ec4da5eeac0fc4df7f797371d9904451a178"},
+]
+
+[package.dependencies]
+phonenumbers = {version = ">=8,<9", optional = true, markers = "extra == \"all\""}
+pycountry = {version = ">=22,<23", optional = true, markers = "extra == \"all\""}
+pydantic = ">=2.0b3"
+
+[package.extras]
+all = ["phonenumbers (>=8,<9)", "pycountry (>=22,<23)"]
 
 [[package]]
 name = "pydantic-settings"
@@ -2385,4 +2428,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "dcc6c675b108a4dbeadc9e92c92c25e6bc3d0539211b355f0d25441435a639be"
+content-hash = "895ea9e83c269b5eefd4cc082e2e9525972cef0bf5d6944a675d63440ff0d656"

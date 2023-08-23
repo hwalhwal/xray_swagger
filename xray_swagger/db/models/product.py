@@ -15,16 +15,14 @@ from xray_swagger.db.models.mixins import AuthorMixin, TimestampMixin
 
 
 class Product(TimestampMixin, AuthorMixin, Base):
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String(255), nullable=False, unique=True)
     inspection_sessions = relationship("InspectionSession")
     settings = relationship("SettingsProduct", back_populates="product")
 
 
 class InspectionSession(Base):
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
 
     product_id = Column(Integer, ForeignKey("product.id"), nullable=False)
     product = relationship("Product", back_populates="inspection_sessions")

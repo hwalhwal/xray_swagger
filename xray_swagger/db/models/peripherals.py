@@ -10,7 +10,7 @@ class Device(Base):
     Fixture로 미리 적재해두고 특정 기능의 장치가 변경되었을 때 올바른 작동을 보장하도록 한다.
     """
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String(255), nullable=False)
     model_series = Column(String(255), nullable=False)
     code = Column(String(255), nullable=False)
