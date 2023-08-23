@@ -1,4 +1,4 @@
 """User API."""
-from xray_swagger.web.api.user.views import router
+from xray_swagger.web.api.users.views import router
 
 __all__ = ["router"]
