@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+import typing
 from datetime import datetime
 
 from sqlalchemy import select
 
 from xray_swagger.db.dao._base import DAOBase
 from xray_swagger.db.models.user import AuthLevel, User
-from xray_swagger.web.api.users.schema import UserUpdateDTO
+
+if typing.TYPE_CHECKING:
+    from xray_swagger.web.api.users.schema import UserUpdateDTO
+
+__all__ = ("UserDAO",)
 
 
 class UserDAO(DAOBase):

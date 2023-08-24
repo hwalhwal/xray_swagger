@@ -8,11 +8,11 @@ from xray_swagger.db.models.settings import (
     SettingsProductParameter,
 )
 
-__all__ = [
+__all__ = (
     "SettingsProductParameterDAO",
     "SettingsProductDAO",
     "SettingsGlobalDAO",
-]
+)
 
 
 class SettingsProductParameterDAO(DAOBase):
