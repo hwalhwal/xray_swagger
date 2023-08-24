@@ -20,9 +20,13 @@ def register_process_time_middleware(app: FastAPI) -> None:
         :param call_next:
         :return:
         """
-        start_time = time.monotonic()
-        response = await call_next(request)
-        process_time = time.monotonic() - start_time
-        response.headers["X-Process-Time"] = str(process_time)
-        logger.info(f"Request processing time elapsed: {process_time}s")
+        url_path = request.url.path
+        if url_path.startswith("/api") and not url_path.endswith(".json"):
+            start_time = time.monotonic()
+            response = await call_next(request)
+            process_time = time.monotonic() - start_time
+            response.headers["X-Process-Time"] = str(process_time)
+            logger.info(f"Request processing time elapsed: {process_time}s")
+        else:
+            response = await call_next(request)
         return response

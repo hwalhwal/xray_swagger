@@ -6,6 +6,7 @@ from fastapi.responses import UJSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from xray_swagger.logging import configure_logging
+from xray_swagger.web.api import docs
 from xray_swagger.web.api.router import api_router
 from xray_swagger.web.exception_handlers import register_exception_handlers
 from xray_swagger.web.lifetime import register_shutdown_event, register_startup_event
@@ -43,6 +44,7 @@ def get_app() -> FastAPI:
     register_middlewares(app)
 
     # Main router for the API.
+    app.include_router(docs.router)
     app.include_router(router=api_router, prefix="/api")
     # Adds static directory.
     # This directory is used to access swagger files.
