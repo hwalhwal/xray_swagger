@@ -7,7 +7,9 @@ from fastapi.staticfiles import StaticFiles
 
 from xray_swagger.logging import configure_logging
 from xray_swagger.web.api.router import api_router
+from xray_swagger.web.exception_handlers import register_exception_handlers
 from xray_swagger.web.lifetime import register_shutdown_event, register_startup_event
+from xray_swagger.web.middlewares import register_middlewares
 
 APP_ROOT = Path(__file__).parent.parent
 
@@ -33,6 +35,12 @@ def get_app() -> FastAPI:
     # Adds startup and shutdown events.
     register_startup_event(app)
     register_shutdown_event(app)
+
+    # Adds Exception Handlers
+    register_exception_handlers(app)
+
+    # Adds Middlewares
+    register_middlewares(app)
 
     # Main router for the API.
     app.include_router(router=api_router, prefix="/api")
