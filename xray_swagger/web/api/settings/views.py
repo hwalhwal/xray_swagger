@@ -1,5 +1,4 @@
-import starlette.status as stc
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from loguru import logger
 
@@ -67,7 +66,7 @@ async def get_settings_product_params(
         d = await dao.get_all()
 
     if not d:
-        raise HTTPException(stc.HTTP_404_NOT_FOUND)
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
 
     logger.debug(f"{len(d)=}")
     logger.debug(d[0].__dict__)

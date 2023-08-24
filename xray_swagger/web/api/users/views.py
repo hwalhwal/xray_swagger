@@ -1,5 +1,4 @@
-import starlette.status as stc
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from loguru import logger
 
@@ -10,7 +9,7 @@ from .schema import UserCreateDTO, UserModelDTO, UserUpdateDTO
 router = APIRouter()
 
 
-@router.post(path="/", response_model=UserModelDTO)
+@router.post(path="/", status_code=status.HTTP_201_CREATED, response_model=UserModelDTO)
 async def create_user(
     *,
     new_user_obj: UserCreateDTO,
@@ -19,7 +18,7 @@ async def create_user(
     if user_dupl := await user_dao.get_by_username(new_user_obj.username):
         logger.warning(f"User name: {user_dupl.username} Fullname: {user_dupl.fullname}")
         raise HTTPException(
-            status_code=stc.HTTP_409_CONFLICT,
+            status_code=status.HTTP_409_CONFLICT,
             detail="A user with that username already exists.",
         )
 
@@ -55,11 +54,11 @@ async def read_user_by_id(
     if not user:
         # TODO: HTTP Exceptions -> NotFoundUserException
         raise HTTPException(
-            status_code=stc.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Specified user not found",
         )
-    print(user)
     print(user.__dict__)
+    # return UserModelDTO.model_validate(user)
     return user
 
 
@@ -74,7 +73,7 @@ async def update_user(
 
     if not user:
         raise HTTPException(
-            status_code=stc.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Specified user not found",
         )
     logger.info(
@@ -98,7 +97,7 @@ async def delete_user(
 
     if not user:
         raise HTTPException(
-            status_code=stc.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Specified user not found",
         )
     logger.info(f"Delete user[{user.username}]")
