@@ -59,12 +59,11 @@ class UserDAO(DAOBase):
         for k in refined_update_fields.keys():
             print(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
         # UPDATE FIELDS
-        print(f"=== UPDATE {type(db_obj).__name__}")
-        for k, v in refined_update_fields.items():
-            db_obj.__setattr__(k, v)
-        # Commit and refresh
-        await self.session.commit()
-        await self.session.refresh(db_obj)
+        async with self.session.begin_nested():
+            print(f"=== UPDATE {type(db_obj).__name__}")
+            for k, v in refined_update_fields.items():
+                db_obj.__setattr__(k, v)
+
         for k in refined_update_fields.keys():
             print(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
         return db_obj

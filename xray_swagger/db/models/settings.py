@@ -19,7 +19,7 @@ class SettingsProduct(mixins.TimestampMixin, mixins.AuthorMixin, Base):
         String(255),
         ForeignKey("settings_product_parameter.setting_param_name"),
         nullable=False,
-        onupdate="CASCADE",
+        # onupdate="CASCADE",
     )
     version = Column(Integer, nullable=False, default=0)  # 세팅변경시 ++
     value = Column(JSON, nullable=True)  # setting_template 기반으로
