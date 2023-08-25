@@ -51,12 +51,10 @@ class SettingsProductParameterDAO(DAOBase):
 
 class SettingsProductDAO(DAOBase):
     async def create(self, payload: "FullSettingsProductDTO"):
-        await self.session.rollback()
-
-        new_settings_product = SettingsProduct(**payload.model_dump(exclude_unset=True))
-        print(new_settings_product)
-        self.session.add(new_settings_product)
-        await self.session.flush()
+        async with self.session.begin_nested():
+            new_settings_product = SettingsProduct(**payload.model_dump(exclude_unset=True))
+            print(new_settings_product)
+            self.session.add(new_settings_product)
 
     async def filter_by_product(self, product_id: int) -> list[SettingsProduct]:
         raw = await self.session.execute(
