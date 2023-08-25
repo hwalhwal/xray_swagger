@@ -14,7 +14,7 @@ readme = "README.md"
 python = "^3.11"
 fastapi = "^0.100.1"
 uvicorn = { version = "^0.20.0", extras = ["standard"] }
-pydantic = {version = "^2.1.1", extras = ["dotenv"]}
+pydantic = {version = ">2.2.1", extras = ["dotenv"]}
 pydantic-settings = ">2.0.0"
 pydantic-extra-types = {version = ">=2.0.0", extras = ["all"]}
 yarl = "^1.8.2"
