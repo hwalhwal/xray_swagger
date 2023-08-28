@@ -16,7 +16,9 @@ poetry run python -m xray_swagger
 
 This will start the server on the configured host.
 
-You can find swagger documentation at `/api/docs`.
+You can find swagger documentation at `/docs`.
+
+settings를 위한 JSON 스키마 설명에 대해서는 `/xsettings/docs` 를 참조하세요.
 
 You can read more about poetry here: https://python-poetry.org/
 
@@ -49,19 +51,19 @@ docker-compose -f deploy/docker-compose.yml --project-directory . build
 $ tree "xray_swagger"
 xray_swagger
 ├── conftest.py  # Fixtures for all tests.
-├── db  # module contains db configurations
-│   ├── dao  # Data Access Objects. Contains different classes to interact with database.
-│   └── models  # Package contains different models for ORMs.
+├── db           # module contains db configurations
+│   ├── dao      # Data Access Objects. Contains different classes to interact with database.
+│   └── models   # Package contains different models for ORMs.
 ├── __main__.py  # Startup script. Starts uvicorn.
-├── services  # Package for different external services such as rabbit or redis etc.
+├── services     # Package for different external services such as rabbit or redis etc.
 ├── settings.py  # Main configuration settings for project.
-├── static  # Static content.
-├── tests  # Tests for project.
-└── web  # Package contains web server. Handlers, startup config.
-    ├── api  # Package with all handlers.
-    │   └── router.py  # Main router.
+├── static       # Static content.
+├── tests        # Tests for project.
+└── web          # Package contains web server. Handlers, startup config.
+    ├── api      # Package with all handlers.
+    │   └── router.py   # Main router.
     ├── application.py  # FastAPI application configuration.
-    └── lifetime.py  # Contains actions to perform on startup and shutdown.
+    └── lifetime.py     # Contains actions to perform on startup and shutdown.
 ```
 
 ## Configuration
@@ -110,22 +112,36 @@ You can read more about pre-commit here: https://pre-commit.com/
 
 If you want to migrate your database, you should run following commands:
 ```bash
-# Upgrade database to the last migration.
-aerich upgrade
+# To perform all pending migrations.
+alembic upgrade head
+
+# To run all migrations until the migration with revision_id.
+alembic upgrade "<revision_id>"
 ```
 
 ### Reverting migrations
 
 If you want to revert migrations, you should run:
 ```bash
-aerich downgrade
+# revert previous version
+alembic downgrade -1
+
+# revert all migrations up to: revision_id.
+alembic downgrade <revision_id>
+
+# Revert everything.
+alembic downgrade base
 ```
 
 ### Migration generation
 
 To generate migrations you should run:
 ```bash
-aerich migrate
+# For automatic change detection.
+alembic revision --autogenerate -m "YOUR COMMENT"
+
+# For empty file generation.
+alembic revision
 ```
 
 
@@ -142,8 +158,10 @@ For running tests on your local machine.
 1. you need to start a database.
 
 I prefer doing it with docker:
-```
-docker run -p "5432:5432" -e "POSTGRES_PASSWORD=xray_swagger" -e "POSTGRES_USER=xray_swagger" -e "POSTGRES_DB=xray_swagger" postgres:13.8-bullseye
+
+```bash
+docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml  --project-directory . up pgadmin -d
+# Optionally, add `--build`
 ```
 
 

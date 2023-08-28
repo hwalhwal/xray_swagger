@@ -94,7 +94,14 @@ async def get_settings_product_param_by_name(
     return SettingsProductParameterDTO.model_validate(d)
 
 
-@router.post(path="/products/{product_id}", status_code=status.HTTP_201_CREATED)
+##########################################################################################
+#
+##########################################################################################
+
+from xray_swagger.web.api.products.views import router as products_router
+
+
+@products_router.post(path="/{product_id}/settings", status_code=status.HTTP_201_CREATED)
 async def create_product_setting(
     product_id: int,
     setting_param_name: str,
@@ -128,7 +135,7 @@ async def create_product_setting(
     await settings_product_dao.create(new_row)
 
 
-@router.get(path="/products/{product_id}", response_model=list[SettingsProductDTO])
+@products_router.get(path="/{product_id}/settings", response_model=list[SettingsProductDTO])
 async def get_all_product_settings(
     product_id: int,  # TODO: set current product to session
     dao: SettingsProductDAO = Depends(),
@@ -137,8 +144,8 @@ async def get_all_product_settings(
     return d
 
 
-@router.get(
-    path="/products/{product_id}/{setting_param_name}",
+@products_router.get(
+    path="/{product_id}/settings/{setting_param_name}",
     response_model=FullSettingsProductDTO,
 )
 async def get_product_setting(
@@ -150,7 +157,10 @@ async def get_product_setting(
     return d
 
 
-@router.patch(path="/products/{product_id}/{setting_param_name}", response_model=SettingsProductDTO)
+@products_router.patch(
+    path="/{product_id}/settings/{setting_param_name}",
+    response_model=SettingsProductDTO,
+)
 async def update_product_setting(
     product_id: int,
     setting_param_name: str,

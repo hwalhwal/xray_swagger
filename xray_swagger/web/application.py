@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import UJSONResponse
 from fastapi.staticfiles import StaticFiles
+from xray_settings import app as xray_settings_app
 
 from xray_swagger.logging import configure_logging
 from xray_swagger.web.api import docs
@@ -53,5 +54,8 @@ def get_app() -> FastAPI:
         StaticFiles(directory=APP_ROOT / "static"),
         name="static",
     )
+
+    # Include xray_settings for JSON schema app
+    app.mount("/xsettings", xray_settings_app)
 
     return app
