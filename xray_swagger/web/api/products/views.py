@@ -2,9 +2,16 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from loguru import logger
 
-from xray_swagger.db.dao.products_dao import InspectionSessionDAO, ProductDAO
+from xray_swagger.db.dao.products_dao import DefectDAO, InspectionSessionDAO, ProductDAO
+from xray_swagger.db.models.defect import DefectCategory
 
-from .schema import InspectionSessionCreateDTO, InspectionSessionDTO, ProductDTO
+from .schema import (
+    DefectCreateDTO,
+    DefectDTO,
+    InspectionSessionCreateDTO,
+    InspectionSessionDTO,
+    ProductDTO,
+)
 
 router = APIRouter()
 
@@ -94,4 +101,37 @@ async def get_inspection_session_by_id(
     # https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html#preventing-implicit-io-when-using-asyncsession
     # prd = await d.awaitable_attrs.product
     # logger.debug(prd)
+    return d
+
+
+@router.post(
+    path="/{product_id}/defects",
+    status_code=status.HTTP_201_CREATED,
+    tags=["product-defects"],
+)
+async def create_defect(
+    product_id: int,
+    payload: DefectCreateDTO,
+    isp_sess_dao: DefectDAO = Depends(),
+) -> DefectDTO:
+    # TODO: integrity check
+    payload.product_id = product_id
+    new_defect = await isp_sess_dao.create(payload)
+    logger.info(new_defect.__dict__)
+    return new_defect
+
+
+@router.get(
+    path="/{product_id}/defects",
+    tags=["product-defects"],
+)
+async def get_defects(
+    product_id: int,
+    isp_sess_id: int | None = None,
+    defect_category: int | None = None,
+    dao: DefectDAO = Depends(),
+) -> list[DefectDTO]:
+    defect_category = DefectCategory(defect_category)
+    print(defect_category)
+    d = await dao.filter(product_id, isp_sess_id, defect_category)
     return d

@@ -1,4 +1,4 @@
-"""Remodeling 001
+"""Create SCHEMA
 
 Revision ID: 633298a57b8a
 Revises: 2b7380507a71
@@ -188,10 +188,15 @@ def upgrade() -> None:
         ),
         sa.Column("inspection_module", sa.String(length=128), nullable=False),
         sa.Column("coordinates", sa.JSON(), nullable=True),
+        sa.Column("product_id", sa.Integer(), nullable=False),
         sa.Column("inspection_session_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["inspection_session_id"],
             ["inspection_session.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["product_id"],
+            ["product.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
     )

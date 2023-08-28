@@ -14,7 +14,8 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 from xray_swagger.db.models.settings import SettingsGlobal, SettingsProductParameter
 from xray_swagger.db.models.user import User, AuthLevel
 from xray_swagger.db.models.peripherals import Device
-from xray_swagger.db.models.product import Product
+from xray_swagger.db.models.product import Product, InspectionSession
+from xray_swagger.db.models.defect import Defect, DefectCategory
 
 from xray_settings.routers.emitter import (
     WatchDogTimerEnable,
@@ -84,6 +85,7 @@ def upgrade() -> None:
         ],
         multiinsert=False,
     )
+    conn.commit()
     print(f"{SettingsGlobal.__table__} bulk insert")
     op.bulk_insert(
         sa.Table(SettingsGlobal.__table__, meta, autoload_with=conn),
@@ -231,10 +233,36 @@ def upgrade() -> None:
             },
         ],
     )
+    ###############################################################
     print(f"{Product.__table__} bulk insert")
     op.bulk_insert(
         sa.Table(Product.__table__, meta, autoload_with=conn),
-        [{"name": "닭가슴살팩", "creator_id": 2, "last_editor_id": 2}],
+        [{"name": "닭가슴살팩", "creator_id": 2, "last_editor_id": 2},
+         {"name": "육고기통조림", "creator_id": 2, "last_editor_id": 2},
+         {"name": "곤약덩어리", "creator_id": 2, "last_editor_id": 2},],
+    )
+    print(f"{InspectionSession.__table__} bulk insert")
+    op.bulk_insert(
+        sa.Table(InspectionSession.__table__, meta, autoload_with=conn),
+        [
+            {"product_id": 1, "image_s3_key": "prod/inspect/000001", "session_started_at": datetime.utcnow()},
+            {"product_id": 1, "image_s3_key": "prod/inspect/000002", "session_started_at": datetime.utcnow()},
+            {"product_id": 1, "image_s3_key": "prod/inspect/000003", "session_started_at": datetime.utcnow()},
+            {"product_id": 1, "image_s3_key": "prod/inspect/000004", "session_started_at": datetime.utcnow()},
+            {"product_id": 1, "image_s3_key": "prod/inspect/000005", "session_started_at": datetime.utcnow()},
+            {"product_id": 1, "image_s3_key": "prod/inspect/000006", "session_started_at": datetime.utcnow()},
+            {"product_id": 1, "image_s3_key": "prod/inspect/000007", "session_started_at": datetime.utcnow()},
+        ]
+    )
+    print(f"{Defect.__table__} bulk insert")
+    op.bulk_insert(
+        sa.Table(Defect.__table__, meta, autoload_with=conn),
+        [
+            {"defect_category": DefectCategory.CONTAMINANT.name, "inspection_module": "RULE", "coordinates": [23, 44, 27 ,77], "product_id": 1, "inspection_session_id": 1},
+            {"defect_category": DefectCategory.CONTAMINANT.name, "inspection_module": "RULE", "coordinates": [50, 60, 60 ,80], "product_id": 1, "inspection_session_id": 1},
+            {"defect_category": DefectCategory.CONTAMINANT.name, "inspection_module": "RULE", "coordinates": [100, 120, 120 ,140], "product_id": 1, "inspection_session_id": 1},
+            {"defect_category": DefectCategory.CONTAMINANT.name, "inspection_module": "RULE", "coordinates": [77, 99, 99 ,121], "product_id": 1, "inspection_session_id": 1},
+        ]
     )
     conn.commit()
     # ### end Alembic commands ###
