@@ -7,6 +7,9 @@ from sqlalchemy import and_, select
 from xray_swagger.db.dao._base import DAOBase
 from xray_swagger.db.models.product import InspectionSession, Product
 
+# import sqlalchemy.orm as orm
+
+
 if typing.TYPE_CHECKING:
     from xray_swagger.web.api.products.schema import InspectionSessionDTO
 
@@ -54,12 +57,22 @@ class InspectionSessionDAO(DAOBase):
                     InspectionSession.product_id == product_id,
                     InspectionSession.id == id,
                 ),
-            ),
+            ),  # .options(orm.selectinload(InspectionSession.product)),
         )
         return raw.scalar()
 
-    async def get_all(self, offset: int = 0, limit: int = 20) -> list[InspectionSession]:
-        raw = await self.session.execute(select(InspectionSession).offset(offset).limit(limit))
+    async def get_all(
+        self,
+        product_id: int,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> list[InspectionSession]:
+        raw = await self.session.execute(
+            select(InspectionSession)
+            .where(InspectionSession.product_id == product_id)
+            .offset(offset)
+            .limit(limit),
+        )
         return list(raw.scalars().fetchall())
 
     async def filter(self, product_id: int) -> list[InspectionSession]:

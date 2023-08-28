@@ -22,7 +22,7 @@ class InspectionSessionDTO(BaseModel):
 
     id: int
     product_id: int
-    # product = relationship("Product", back_populates="inspection_sessions")
+    # product: ProductDTO | None = None
 
     image_s3_key: str
 
