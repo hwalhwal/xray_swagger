@@ -9,6 +9,7 @@ from xray_settings import app as xray_settings_app
 from xray_swagger.logging import configure_logging
 from xray_swagger.web.api import docs
 from xray_swagger.web.api.router import api_router
+from xray_swagger.web.auth import router as auth_router
 from xray_swagger.web.exception_handlers import register_exception_handlers
 from xray_swagger.web.lifetime import register_shutdown_event, register_startup_event
 from xray_swagger.web.middlewares import register_middlewares
@@ -46,6 +47,7 @@ def get_app() -> FastAPI:
 
     # Main router for the API.
     app.include_router(docs.router)
+    app.include_router(router=auth_router, prefix="/auth")
     app.include_router(router=api_router, prefix="/api")
     # Adds static directory.
     # This directory is used to access swagger files.

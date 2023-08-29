@@ -1,12 +1,20 @@
+from typing import Annotated
+
 from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from loguru import logger
 
 from xray_swagger.db.dao.user_dao import UserDAO
+from xray_swagger.web.api.deps import get_current_user
 
 from .schema import UserCreateDTO, UserModelDTO, UserUpdateDTO
 
 router = APIRouter()
+
+
+@router.get("/me")
+def read_current_user(user: Annotated[str, Depends(get_current_user)]) -> UserModelDTO:
+    return user
 
 
 @router.post(path="/", status_code=status.HTTP_201_CREATED, response_model=UserModelDTO)
