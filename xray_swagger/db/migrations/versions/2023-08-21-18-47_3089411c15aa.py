@@ -5,6 +5,7 @@ Revises: 633298a57b8a
 Create Date: 2023-08-21 18:47:02.613344
 
 """
+import uuid
 import sqlalchemy as sa
 from alembic import op
 
@@ -14,7 +15,10 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 from xray_swagger.db.models.settings import SettingsGlobal, SettingsProductParameter
 from xray_swagger.db.models.user import User, AuthLevel
 from xray_swagger.db.models.peripherals import Device
-from xray_swagger.db.models.product import Product
+from xray_swagger.db.models.mmap_session import MmapSession
+
+from xray_swagger.db.models.product import Product, InspectionSession
+from xray_swagger.db.models.defect import Defect, DefectCategory
 
 from xray_settings.routers.emitter import (
     WatchDogTimerEnable,
@@ -84,6 +88,7 @@ def upgrade() -> None:
         ],
         multiinsert=False,
     )
+    conn.commit()
     print(f"{SettingsGlobal.__table__} bulk insert")
     op.bulk_insert(
         sa.Table(SettingsGlobal.__table__, meta, autoload_with=conn),
@@ -231,10 +236,169 @@ def upgrade() -> None:
             },
         ],
     )
+    print(f"{MmapSession.__table__} bulk insert")
+    mmssuuid01 = uuid.uuid4()
+    mmssuuid02 = uuid.uuid4()
+    mmssuuid03 = uuid.uuid4()
+    mmssuuid04 = uuid.uuid4()
+    op.bulk_insert(
+        sa.Table(MmapSession.__table__, meta, autoload_with=conn),
+        [
+            {
+                "uuid": mmssuuid01, "image_s3_key": f"mmap/session/{mmssuuid01}",
+                "session_started_at": datetime.fromisoformat("2023-08-29T00:00:00.000001"),
+                "session_ended_at":   datetime.fromisoformat("2023-08-29T00:01:00.000001"),
+                "is_preserved": True,
+            },
+            {
+                "uuid": mmssuuid02, "image_s3_key": f"mmap/session/{mmssuuid02}",
+                "session_started_at": datetime.fromisoformat("2023-08-29T00:01:00.000001"),
+                "session_ended_at":   datetime.fromisoformat("2023-08-29T00:02:00.000001"),
+                "is_preserved": True,
+            },
+            {
+                "uuid": mmssuuid03, "image_s3_key": f"mmap/session/{mmssuuid03}",
+                "session_started_at": datetime.fromisoformat("2023-08-29T00:02:00.000001"),
+                "session_ended_at":   datetime.fromisoformat("2023-08-29T00:03:00.000001"),
+                "is_preserved": True,
+            },
+            {
+                "uuid": mmssuuid04, "image_s3_key": f"mmap/session/{mmssuuid04}",
+                "session_started_at": datetime.fromisoformat("2023-08-29T00:03:00.000001"),
+                "session_ended_at":   datetime.fromisoformat("2023-08-29T00:04:00.000001"),
+                "is_preserved": True,
+            },
+        ]
+    )
+    ###############################################################
     print(f"{Product.__table__} bulk insert")
     op.bulk_insert(
         sa.Table(Product.__table__, meta, autoload_with=conn),
-        [{"name": "닭가슴살팩", "creator_id": 2, "last_editor_id": 2}],
+        [{"name": "닭가슴살팩", "creator_id": 2, "last_editor_id": 2},
+         {"name": "육고기통조림", "creator_id": 2, "last_editor_id": 2},
+         {"name": "곤약덩어리", "creator_id": 2, "last_editor_id": 2},],
+    )
+    print(f"{InspectionSession.__table__} bulk insert")
+    op.bulk_insert(
+        sa.Table(InspectionSession.__table__, meta, autoload_with=conn),
+        [
+            {"product_id": 1, "image_s3_key": "prod/inspect/000001",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:00:00.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:00:02.000001"),
+             "start_mmap_session_uuid": mmssuuid01,
+             "end_mmap_session_uuid": mmssuuid01,
+             "start_mmap_session_ptr": 0,
+             "end_mmap_session_ptr": 1000,
+            },
+            {"product_id": 1, "image_s3_key": "prod/inspect/000002",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:00:02.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:00:04.000001"),
+             "start_mmap_session_uuid": mmssuuid01,
+             "end_mmap_session_uuid": mmssuuid01,
+             "start_mmap_session_ptr": 1000,
+             "end_mmap_session_ptr": 1500,
+            },
+            {"product_id": 1, "image_s3_key": "prod/inspect/000003",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:00:04.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:00:06.000001"),
+             "start_mmap_session_uuid": mmssuuid01,
+             "end_mmap_session_uuid": mmssuuid01,
+             "start_mmap_session_ptr": 1500,
+             "end_mmap_session_ptr": 3000,
+            },
+            {"product_id": 1, "image_s3_key": "prod/inspect/000004",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:00:06.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:00:09.000001"),
+             "start_mmap_session_uuid": mmssuuid01,
+             "end_mmap_session_uuid": mmssuuid01,
+             "start_mmap_session_ptr": 3000,
+             "end_mmap_session_ptr": 6000,
+            },
+            {"product_id": 1, "image_s3_key": "prod/inspect/000005",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:00:09.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:00:12.000001"),
+             "start_mmap_session_uuid": mmssuuid01,
+             "end_mmap_session_uuid": mmssuuid01,
+             "start_mmap_session_ptr": 6000,
+             "end_mmap_session_ptr": 8000,
+            },
+            {"product_id": 1, "image_s3_key": "prod/inspect/000006",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:00:12.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:00:14.000001"),
+             "start_mmap_session_uuid": mmssuuid01,
+             "end_mmap_session_uuid": mmssuuid01,
+             "start_mmap_session_ptr": 8000,
+             "end_mmap_session_ptr": 9000,
+            },
+            {"product_id": 1, "image_s3_key": "prod/inspect/000007",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:00:14.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:00:18.000001"),
+             "start_mmap_session_uuid": mmssuuid01,
+             "end_mmap_session_uuid": mmssuuid01,
+             "start_mmap_session_ptr": 9000,
+             "end_mmap_session_ptr": 12000,
+            },
+            ###
+            {"product_id": 2, "image_s3_key": "prod/inspect/000008",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:01:00.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:01:02.000001"),
+             "start_mmap_session_uuid": mmssuuid02,
+             "end_mmap_session_uuid": mmssuuid02,
+             "start_mmap_session_ptr": 0,
+             "end_mmap_session_ptr": 1000,
+            },
+            {"product_id": 2, "image_s3_key": "prod/inspect/000009",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:01:02.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:01:08.000001"),
+             "start_mmap_session_uuid": mmssuuid02,
+             "end_mmap_session_uuid": mmssuuid02,
+             "start_mmap_session_ptr": 1000,
+             "end_mmap_session_ptr": 3000,
+            },
+            {"product_id": 2, "image_s3_key": "prod/inspect/000010",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:01:08.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:01:14.000001"),
+             "start_mmap_session_uuid": mmssuuid02,
+             "end_mmap_session_uuid": mmssuuid02,
+             "start_mmap_session_ptr": 3000,
+             "end_mmap_session_ptr": 4000,
+            },
+            ##
+            {"product_id": 3, "image_s3_key": "prod/inspect/000011",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:02:08.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:02:14.000001"),
+             "start_mmap_session_uuid": mmssuuid03,
+             "end_mmap_session_uuid": mmssuuid03,
+             "start_mmap_session_ptr": 6000,
+             "end_mmap_session_ptr": 9000,
+            },
+            {"product_id": 3, "image_s3_key": "prod/inspect/000012",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:02:14.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:02:20.000001"),
+             "start_mmap_session_uuid": mmssuuid03,
+             "end_mmap_session_uuid": mmssuuid03,
+             "start_mmap_session_ptr": 9000,
+             "end_mmap_session_ptr": 12000,
+            },
+            {"product_id": 3, "image_s3_key": "prod/inspect/000013",
+             "session_started_at": datetime.fromisoformat("2023-08-29T00:02:56.000001"),
+             "session_ended_at":   datetime.fromisoformat("2023-08-29T00:03:01.000001"),
+             "start_mmap_session_uuid": mmssuuid03,
+             "end_mmap_session_uuid": mmssuuid04,
+             "start_mmap_session_ptr": 35600,
+             "end_mmap_session_ptr": 300,
+            },
+        ]
+    )
+    print(f"{Defect.__table__} bulk insert")
+    op.bulk_insert(
+        sa.Table(Defect.__table__, meta, autoload_with=conn),
+        [
+            {"defect_category": DefectCategory.CONTAMINANT.name, "inspection_module": "RULE", "coordinates": [23, 44, 27 ,77], "product_id": 1, "inspection_session_id": 1},
+            {"defect_category": DefectCategory.CONTAMINANT.name, "inspection_module": "RULE", "coordinates": [50, 60, 60 ,80], "product_id": 1, "inspection_session_id": 1},
+            {"defect_category": DefectCategory.CONTAMINANT.name, "inspection_module": "RULE", "coordinates": [100, 120, 120 ,140], "product_id": 1, "inspection_session_id": 1},
+            {"defect_category": DefectCategory.CONTAMINANT.name, "inspection_module": "RULE", "coordinates": [77, 99, 99 ,121], "product_id": 1, "inspection_session_id": 1},
+        ]
     )
     conn.commit()
     # ### end Alembic commands ###
@@ -248,6 +412,10 @@ def downgrade() -> None:
         sa.text(f'TRUNCATE TABLE "{SettingsGlobal.__tablename__}" CASCADE;'),
         sa.text(f'TRUNCATE TABLE "{Device.__tablename__}" CASCADE;'),
         sa.text(f'TRUNCATE TABLE "{SettingsProductParameter.__tablename__}" CASCADE;'),
+        sa.text(f'TRUNCATE TABLE "{MmapSession.__tablename__}" CASCADE;'),
+        ####################################
+        sa.text(f'TRUNCATE TABLE "{Product.__tablename__}" CASCADE;'),
+        sa.text(f'TRUNCATE TABLE "{Defect.__tablename__}" CASCADE;'),
     )
     for q in queries:
         print(q)
