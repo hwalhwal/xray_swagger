@@ -15,14 +15,6 @@ from .schema import (
 
 router = APIRouter()
 
-sample_product = ProductDTO(
-    name="asdas",
-    inspection_sessions="aasd",
-    settings="aaa",
-    creator_id=1,
-    last_editor_id=1,
-)
-
 
 @router.get(path="/", response_model=list[ProductDTO])
 async def get_all_products(

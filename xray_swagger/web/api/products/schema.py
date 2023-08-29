@@ -43,14 +43,14 @@ class InspectionSessionCreateDTO(BaseModel):
     product_id: int | None = None
     image_s3_key: str
 
-    session_started_at: datetime = Field(default=datetime.utcnow())
+    session_started_at: datetime = Field(default_factory=datetime.utcnow)
     # Docker 내부에서 timezone 이슈 발생할것
 
     system_error: str | None = None
 
     @field_serializer("session_started_at")
     def serialize_session_started_at(self, value: datetime, _info):
-        return value.utcnow()
+        return value.replace(tzinfo=None)
 
 
 class DefectDTO(BaseModel):
