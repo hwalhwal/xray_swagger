@@ -6,7 +6,7 @@ from sqlalchemy import and_, select
 
 from xray_swagger.db.dao._base import DAOBase
 from xray_swagger.db.models.defect import Defect, DefectCategory
-from xray_swagger.db.models.product import Defect, InspectionSession, Product
+from xray_swagger.db.models.product import InspectionSession, Product
 
 # import sqlalchemy.orm as orm
 
