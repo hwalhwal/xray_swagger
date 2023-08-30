@@ -1,12 +1,12 @@
 import secrets
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
+from fastapi.param_functions import Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from loguru import logger
 
 from xray_swagger.db.dao.user_dao import UserDAO
-from xray_swagger.web.api.users.schema import UserModelDTO
 
 security = HTTPBasic()
 
@@ -40,7 +40,7 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-    current_user: Annotated[UserModelDTO, Depends(get_current_user)],
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
     if current_user.deleted_at:
         logger.warning(f"User {current_user.username} was deleted at {current_user.deleted_at}")
