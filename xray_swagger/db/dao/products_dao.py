@@ -12,7 +12,7 @@ from xray_swagger.db.models.product import InspectionSession, Product
 
 
 if typing.TYPE_CHECKING:
-    from xray_swagger.web.api.products.schema import InspectionSessionDTO
+    from xray_swagger.web.api.products.schema import InspectionSessionDTO, ProductDTO
 
 
 __all__ = (
@@ -22,6 +22,13 @@ __all__ = (
 
 
 class ProductDAO(DAOBase):
+    async def create(self, payload: "ProductDTO") -> Product:
+        async with self.session.begin_nested():
+            new_product = Product(**payload.model_dump(exclude_none=True))
+            print(new_product)
+            self.session.add(new_product)
+        return new_product
+
     async def get(self, id: int) -> Product:
         raw = await self.session.execute(
             select(Product).where(
@@ -41,6 +48,20 @@ class ProductDAO(DAOBase):
             ),
         )
         return list(raw.scalars().fetchall())
+
+    async def update(self, db_obj: Product, update_fields: "ProductDTO") -> Product:
+        refined_update_fields = update_fields.model_dump(exclude_none=True)
+        for k in refined_update_fields.keys():
+            print(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
+        # UPDATE FIELDS
+        async with self.session.begin_nested():
+            print(f"=== UPDATE {type(db_obj).__name__}")
+            for k, v in refined_update_fields.items():
+                db_obj.__setattr__(k, v)
+
+        for k in refined_update_fields.keys():
+            print(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
+        return db_obj
 
 
 class InspectionSessionDAO(DAOBase):
