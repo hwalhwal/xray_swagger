@@ -21,6 +21,8 @@ router = APIRouter()
 def read_current_user(
     user: Annotated[UserModelDTO, Depends(get_current_active_user)],
 ) -> UserModelDTO:
+    logger.debug(type(user))
+    logger.debug(user)
     return user
 
 
@@ -51,6 +53,12 @@ async def create_user(
     logger.info(new_user.__dict__)
     # return UserModelDTO.model_validate(new_user)
     return new_user
+
+
+@router.get(path="/schema")
+async def get_user_schema_json():
+    """유저 생성에 필요한 JSON schema를 반환합니다."""
+    return UserCreateDTO.model_json_schema()
 
 
 @router.get(
