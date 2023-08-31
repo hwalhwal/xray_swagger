@@ -4,8 +4,10 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from fastapi.security import OAuth2PasswordRequestForm
+from redis.asyncio import ConnectionPool, Redis
 
 from xray_swagger.db.dao.user_dao import UserDAO
+from xray_swagger.services.redis.dependency import get_redis_pool
 from xray_swagger.web.api.deps import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
@@ -57,6 +59,7 @@ router = APIRouter()
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     user_dao: UserDAO = Depends(),
+    redis_pool: ConnectionPool = Depends(get_redis_pool),
 ):
     user = await authenticate_user(form_data.username, form_data.password, user_dao)
     if not user:
@@ -70,4 +73,11 @@ async def login_for_access_token(
         data={"sub": user.username},
         expires_delta=access_token_expires,
     )
+    async with Redis(connection_pool=redis_pool) as redis:
+        await redis.set(
+            name=f"user_access_token_{user.username}",
+            value=access_token,
+            keepttl=ACCESS_TOKEN_EXPIRE_MINUTES,
+        )
+
     return {"access_token": access_token, "token_type": "bearer"}
