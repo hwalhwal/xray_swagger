@@ -82,20 +82,12 @@ in `xray_swagger.settings.Settings.Config`.
 
 An example of .env file:
 ```bash
-XRAY_SWAGGER_RELOAD=True
-XRAY_SWAGGER_PORT=8000
-XRAY_SWAGGER_ENVIRONMENT=dev
-
-XRAY_SWAGGER_LOG_LEVEL=DEBUG
-
-XRAY_SWAGGER_DB_HOST=localhost
-XRAY_SWAGGER_REDIS_HOST=localhost
-
+XRAY_SWAGGER_RELOAD="True"
+XRAY_SWAGGER_PORT="8000"
+XRAY_SWAGGER_ENVIRONMENT="dev"
 ```
 
-You can read more about pydantic-settings:
-* https://docs.pydantic.dev/latest/usage/pydantic_settings/
-* https://github.com/pydantic/pydantic-settings
+You can read more about BaseSettings class here: https://pydantic-docs.helpmanual.io/usage/settings/
 
 ## Pre-commit
 
@@ -159,7 +151,6 @@ If you want to run it in docker, simply run:
 
 ```bash
 docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml --project-directory . run --build --rm api pytest -vv .
-
 docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml --project-directory . down
 ```
 
