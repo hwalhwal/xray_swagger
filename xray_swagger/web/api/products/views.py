@@ -1,9 +1,14 @@
+from datetime import datetime
+from typing import Annotated
+
 from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from loguru import logger
 
 from xray_swagger.db.dao.products_dao import DefectDAO, InspectionSessionDAO, ProductDAO
 from xray_swagger.db.models.defect import DefectCategory
+from xray_swagger.web.api.deps import get_current_active_user
+from xray_swagger.web.api.users.schema import UserModelDTO
 
 from .schema import (
     DefectCreateDTO,
@@ -14,6 +19,21 @@ from .schema import (
 )
 
 router = APIRouter()
+
+
+@router.post(path="/", status_code=status.HTTP_201_CREATED, response_model=ProductDTO)
+async def create_product(
+    product_name: str,
+    user: Annotated[UserModelDTO, Depends(get_current_active_user)],
+    dao: ProductDAO = Depends(),
+):
+    new_product_payload = ProductDTO(
+        name=product_name,
+        creator_id=user.id,
+        last_editor_id=user.id,
+    )
+    new_product = await dao.create(new_product_payload)
+    return new_product
 
 
 @router.get(path="/", response_model=list[ProductDTO])
@@ -36,6 +56,25 @@ async def get_product_by_id(
     if not d:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"Product <id: {product_id} Not Found")
     return d
+
+
+@router.patch(path="/{product_id}", response_model=ProductDTO)
+async def update_product(
+    product_id: int,
+    product_name: str,
+    user: Annotated[UserModelDTO, Depends(get_current_active_user)],
+    dao: ProductDAO = Depends(),
+):
+    product = await dao.get(product_id)
+    if not product:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Product <id: {product_id} Not Found")
+    update_product_payload = ProductDTO(
+        name=product_name,
+        last_editor_id=user.id,
+        modified_at=datetime.utcnow(),
+    )
+    await dao.update(product, update_product_payload)
+    return product
 
 
 @router.post(

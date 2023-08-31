@@ -1,11 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.param_functions import Depends
 from loguru import logger
 
 from xray_swagger.db.dao.user_dao import UserDAO
-from xray_swagger.web.api.deps import get_current_user
+from xray_swagger.web.api.deps import get_current_active_user
+from xray_swagger.web.middlewares.permissions import (
+    IsAuthenticated,
+    IsSupervisor,
+    PermissionsDependency,
+)
 
 from .schema import UserCreateDTO, UserModelDTO, UserUpdateDTO
 
@@ -13,11 +18,20 @@ router = APIRouter()
 
 
 @router.get("/me")
-def read_current_user(user: Annotated[str, Depends(get_current_user)]) -> UserModelDTO:
+def read_current_user(
+    user: Annotated[UserModelDTO, Depends(get_current_active_user)],
+) -> UserModelDTO:
+    logger.debug(type(user))
+    logger.debug(user)
     return user
 
 
-@router.post(path="/", status_code=status.HTTP_201_CREATED, response_model=UserModelDTO)
+@router.post(
+    path="/",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(PermissionsDependency([IsAuthenticated, IsSupervisor]))],
+    response_model=UserModelDTO,
+)
 async def create_user(
     *,
     new_user_obj: UserCreateDTO,
@@ -41,11 +55,32 @@ async def create_user(
     return new_user
 
 
-@router.get(path="/", response_model=list[UserModelDTO])
+@router.get(path="/schema")
+async def get_user_schema_json():
+    """유저 생성에 필요한 JSON schema를 반환합니다."""
+    return UserCreateDTO.model_json_schema()
+
+
+@router.get(
+    path="/",
+    response_model=list[UserModelDTO],
+)
 async def read_all_user(
     *,
+    request: Request,
+    authorize: bool = Depends(PermissionsDependency([IsAuthenticated, IsSupervisor])),
     user_dao: UserDAO = Depends(),
 ):
+    from pprint import pformat
+
+    logger.debug(request)
+    logger.debug(pformat(request.scope))
+    logger.debug(pformat(request.headers.__dict__))
+    logger.debug(pformat(request.state.__dict__))
+    # logger.debug(request.auth)
+    # logger.debug(request.user)
+    # logger.debug(request.session)
+    # logger.debug(pformat(request.__dict__))
     users = await user_dao.get_all()
     logger.info("Getting users list")
     return users
