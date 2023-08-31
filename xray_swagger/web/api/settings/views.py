@@ -11,6 +11,12 @@ from xray_swagger.db.dao.settings_dao import (
     SettingsProductDAO,
     SettingsProductParameterDAO,
 )
+from xray_swagger.web.middlewares.permissions import (
+    IsAuthenticated,
+    IsEngineer,
+    IsSupervisor,
+    PermissionsDependency,
+)
 
 from .schema import (
     FullSettingsProductDTO,
@@ -31,18 +37,27 @@ async def get_all_global_settings(
     return d
 
 
-@router.patch(path="/global/watchdog-timer", response_model=SettingsGlobalDTO)
+@router.patch(
+    path="/global/watchdog-timer",
+    response_model=SettingsGlobalDTO,
+)
 async def update_watchdog_timer(
     new_value: bool,
+    authorize: bool = Depends(PermissionsDependency([IsAuthenticated, IsEngineer])),
     dao: SettingsGlobalDAO = Depends(),
 ):
+    logger.debug(f"User permission check <IsEngineer> passed? {authorize=}")
     d = await dao.get("Watchdog.Timer")
     await dao.update(d, new_value)
 
     return d
 
 
-@router.patch(path="/global/conveyor-direction", response_model=SettingsGlobalDTO)
+@router.patch(
+    path="/global/conveyor-direction",
+    dependencies=[Depends(PermissionsDependency([IsAuthenticated, IsEngineer]))],
+    response_model=SettingsGlobalDTO,
+)
 async def update_conveyor_direction(
     new_value: int,
     dao: SettingsGlobalDAO = Depends(),
@@ -53,7 +68,11 @@ async def update_conveyor_direction(
     return d
 
 
-@router.patch(path="/global/inspection-mode", response_model=SettingsGlobalDTO)
+@router.patch(
+    path="/global/inspection-mode",
+    dependencies=[Depends(PermissionsDependency([IsAuthenticated, IsSupervisor]))],
+    response_model=SettingsGlobalDTO,
+)
 async def update_inspection_mode(
     new_value: int,
     dao: SettingsGlobalDAO = Depends(),
@@ -64,7 +83,10 @@ async def update_inspection_mode(
     return d
 
 
-@router.get(path="/product-params", response_model=list[SettingsProductParameterDTO])
+@router.get(
+    path="/product-params",
+    response_model=list[SettingsProductParameterDTO],
+)
 async def get_settings_product_params(
     name_query: str = None,
     dao: SettingsProductParameterDAO = Depends(),
@@ -101,7 +123,11 @@ async def get_settings_product_param_by_name(
 from xray_swagger.web.api.products.views import router as products_router
 
 
-@products_router.post(path="/{product_id}/settings", status_code=status.HTTP_201_CREATED)
+@products_router.post(
+    path="/{product_id}/settings",
+    status_code=status.HTTP_201_CREATED,
+    tags=["settings"],
+)
 async def create_product_setting(
     product_id: int,
     setting_param_name: str,
@@ -135,7 +161,11 @@ async def create_product_setting(
     await settings_product_dao.create(new_row)
 
 
-@products_router.get(path="/{product_id}/settings", response_model=list[SettingsProductDTO])
+@products_router.get(
+    path="/{product_id}/settings",
+    response_model=list[SettingsProductDTO],
+    tags=["settings"],
+)
 async def get_all_product_settings(
     product_id: int,  # TODO: set current product to session
     dao: SettingsProductDAO = Depends(),
@@ -147,6 +177,7 @@ async def get_all_product_settings(
 @products_router.get(
     path="/{product_id}/settings/{setting_param_name}",
     response_model=FullSettingsProductDTO,
+    tags=["settings"],
 )
 async def get_product_setting(
     product_id: int,
@@ -159,7 +190,9 @@ async def get_product_setting(
 
 @products_router.patch(
     path="/{product_id}/settings/{setting_param_name}",
+    dependencies=[Depends(PermissionsDependency([IsAuthenticated, IsSupervisor]))],
     response_model=SettingsProductDTO,
+    tags=["settings"],
 )
 async def update_product_setting(
     product_id: int,

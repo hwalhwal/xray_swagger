@@ -27,6 +27,8 @@ class UserModelDTO(BaseModel):
 
 
 class UserCreateDTO(BaseModel):
+    """Schema for User creation"""
+
     model_config = ConfigDict(from_attributes=True)
 
     username: str

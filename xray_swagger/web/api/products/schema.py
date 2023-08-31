@@ -20,6 +20,16 @@ class ProductDTO(BaseModel):
     modified_at: datetime | None = None
 
 
+class ProductCreateDTO(BaseModel):
+    name: str
+
+    creator_id: int | None = None
+    last_editor_id: int | None = None
+
+    created_at: datetime | None = None
+    modified_at: datetime | None = None
+
+
 class InspectionSessionDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

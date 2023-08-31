@@ -85,6 +85,16 @@ def upgrade() -> None:
                 "joined_at": datetime.utcnow(),
                 "authlevel": AuthLevel.SUPERVISOR.name,
             },
+            {
+                "username": "operator",
+                "password": "4321",
+                "fullname": "김상용",
+                "phone_number": PhoneNumber._validate("+821066458155", None),
+                "company": "Siemens",
+                "job_title": "worker",
+                "joined_at": datetime.utcnow(),
+                "authlevel": AuthLevel.OPERATOR.name,
+            },
         ],
         multiinsert=False,
     )

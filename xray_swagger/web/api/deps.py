@@ -1,46 +1,96 @@
+# TODO: rename to dependencies
 import secrets
+from datetime import datetime, timedelta
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import HTTPException, status
+from fastapi.param_functions import Depends
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from loguru import logger
+from pydantic import BaseModel
 
 from xray_swagger.db.dao.user_dao import UserDAO
-from xray_swagger.web.api.users.schema import UserModelDTO
 
-security = HTTPBasic()
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+
+SECRET_KEY = "b047ec65b80608f1c1fcd10d640cc6f88fce63ce18a5cf085c0c5fd18c820c04"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+security = OAuth2PasswordBearer(tokenUrl=f"/auth/token")
+
+
+def verify_password(plain_password, hashed_password) -> bool:
+    # return pwd_context.verify(plain_password, hashed_password)
+    return secrets.compare_digest(
+        plain_password,
+        hashed_password,
+    )
+
+
+def get_password_hash(password):
+    # return pwd_context.hash(password)
+    return password
+
+
+async def authenticate_user(username: str, password: str, user_dao: UserDAO):
+    user = await user_dao.get_by_username(username)
+    if not user:
+        return False
+    if not verify_password(password, user.password):
+        return False
+    return user
+
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 
 async def get_current_user(
-    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
+    token: Annotated[str, Depends(security)],
     user_dao: UserDAO = Depends(),
 ):
-    logger.debug(type(credentials))
-    # logger.debug(credentials.__dict__)
-    user = await user_dao.get_by_username(credentials.username)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"The user with username '{credentials.username}' does not exist",
-        )
-    current_password_bytes = credentials.password.encode("utf8")
-    correct_password_bytes = user.password.encode("utf8")
-    is_correct_password = secrets.compare_digest(
-        current_password_bytes,
-        correct_password_bytes,
+    CredentialsException = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid authentication credentials",
+        headers={"WWW-Authenticate": "Bearer"},
     )
-    if not is_correct_password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    logger.debug(type(token))
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        logger.debug(payload)
+        username: str = payload.get("sub")
+        if username is None:
+            raise CredentialsException
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise CredentialsException
+    user = await user_dao.get_by_username(token_data.username)
+    if user is None:
+        raise CredentialsException
 
     return user
 
 
 async def get_current_active_user(
-    current_user: Annotated[UserModelDTO, Depends(get_current_user)],
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
     if current_user.deleted_at:
         logger.warning(f"User {current_user.username} was deleted at {current_user.deleted_at}")
