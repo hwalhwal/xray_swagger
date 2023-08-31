@@ -15,9 +15,12 @@ services:
       XRAY_SWAGGER_RELOAD: "True"
 
   migrator:
-    # command: sh -c "aerich init -t xray_swagger.db.config.TORTOISE_CONFIG && aerich init-db &&  aerich upgrade"
     volumes:
     - .:/app/src/
+
+  redis:
+    ports:
+    - "6379:6379"
 
   pgadmin:
     image: dpage/pgadmin4:7.5
@@ -33,6 +36,7 @@ services:
     restart: unless-stopped
     depends_on:
     - db
+    - redis
 
 
 volumes:

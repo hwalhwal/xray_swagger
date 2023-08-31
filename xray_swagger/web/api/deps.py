@@ -94,5 +94,5 @@ async def get_current_active_user(
 ):
     if current_user.deleted_at:
         logger.warning(f"User {current_user.username} was deleted at {current_user.deleted_at}")
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
     return current_user
