@@ -57,11 +57,18 @@ services:
         condition: service_healthy
 
   redis:
-    image: redis:7-alpine
+    image: bitnami/redis:6.2.5
     hostname: "xray_swagger-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
     healthcheck:
-      test: ["CMD", "redis-cli", "PING"]
-    restart: unless-stopped
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+
 
 volumes:
   xray_swagger-db-data:
