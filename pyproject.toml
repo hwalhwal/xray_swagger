@@ -33,23 +33,45 @@ python-multipart = "^0.0.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.1"
-flake8 = "~4.0.1"
+pytest-cov = "^4.0.0"
+pytest-env = "^0.8.1"
 mypy = "^1.1.1"
 isort = "^5.11.4"
-pre-commit = "^3.0.1"
-wemake-python-styleguide = "^0.17.0"
-black = "^22.12.0"
 autoflake = "^1.6.1"
-pytest-cov = "^4.0.0"
+pre-commit = "^3.0.1"
+black = "^22.12.0"
 anyio = "^3.6.2"
-pytest-env = "^0.8.1"
 fakeredis = "^2.5.0"
 httpx = "^0.23.3"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.286"
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 src_paths = ["xray_swagger",]
+
+[tool.black]
+line-length = 100
+extend-exclude='''
+/(
+.venv
+|migrations
+)\
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    "xray_settings",
+    "migrations"
+]
+
+[tool.ruff.per-file-ignores]
+"**/dao/*.py" = ["E712"]  # Comparison to `True` should be `cond is True`
+
 
 [tool.mypy]
 strict = true
@@ -63,15 +85,6 @@ allow_untyped_decorators = true
 warn_unused_ignores = false
 warn_return_any = false
 namespace_packages = true
-
-[tool.black]
-line-length = 100
-extend-exclude='''
-/(
-.venv
-|migrations
-)\
-'''
 
 # Remove this and add `types-redis`
 # when the issue https://github.com/python/typeshed/issues/8242 is resolved.
@@ -91,10 +104,6 @@ env = [
     "XRAY_SWAGGER_ENVIRONMENT=pytest",
     "XRAY_SWAGGER_DB_BASE=xray_swagger_test",
 ]
-[tool.aerich]
-tortoise_orm = "xray_swagger.db.config.TORTOISE_CONFIG"
-location = "./migrations"
-src_folder = "./."
 [fastapi-template.options]
 project_name = "xray_swagger"
 api_type = "rest"
