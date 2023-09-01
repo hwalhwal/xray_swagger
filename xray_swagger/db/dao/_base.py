@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Generic, Sequence, TypeVar, get_args
 
 from fastapi import Depends
@@ -32,21 +33,21 @@ class DAOBase(Generic[ModelType, CreateDTOType, UpdateDTOType]):
     async def create(self, payload: CreateDTOType) -> ModelType:
         logger.debug(f"=== CREATE {self.MODEL.__name__}")
         async with self.session.begin_nested():
-            new_product = self.MODEL(**payload.model_dump(exclude_none=True))
-            self.session.add(new_product)
-        return new_product
+            new_row = self.MODEL(**payload.model_dump(exclude_none=True))
+            self.session.add(new_row)
+        return new_row
 
     async def get(self, id: int) -> ModelType | None:
         logger.debug(f"=== GET 1 {self.MODEL.__name__}")
-        raw = await self.session.execute(
+        row = await self.session.execute(
             select(self.MODEL).where(self.MODEL.id == id),
         )
-        return raw.scalar()
+        return row.scalar()
 
     async def get_all(self) -> Sequence[ModelType]:
         logger.debug(f"=== GET ALL {self.MODEL.__name__}")
-        raw = await self.session.execute(select(self.MODEL))
-        return raw.scalars().fetchall()
+        rows = await self.session.execute(select(self.MODEL))
+        return rows.scalars().fetchall()
 
     async def update(
         self,
@@ -76,3 +77,8 @@ class DAOBase(Generic[ModelType, CreateDTOType, UpdateDTOType]):
         logger.debug(f"=== DELETE {type(db_obj).__name__}")
         async with self.session.begin_nested():
             await self.session.delete(db_obj)
+
+    async def quasi_delete(self, db_obj: ModelType) -> None:
+        logger.debug(f"=== quasi-DELETE {type(db_obj).__name__} by setting column `deleted_at`")
+        async with self.session.begin_nested():
+            db_obj.deleted_at = datetime.utcnow()

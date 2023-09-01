@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Sequence
 
-from loguru import logger
 from sqlalchemy import and_, select
 
 from xray_swagger.db.dao._base import DAOBase
@@ -37,11 +35,6 @@ class ProductDAO(DAOBase[Product, ProductCreateDTO, ProductCreateDTO]):
             ),
         )
         return raw.scalars().fetchall()
-
-    async def delete(self, db_obj: Product) -> None:
-        logger.debug(f"=== quasi-DELETE {type(db_obj).__name__} by setting column `deleted_at`")
-        async with self.session.begin_nested():
-            db_obj.deleted_at = datetime.utcnow()
 
 
 class InspectionSessionDAO(

@@ -92,7 +92,7 @@ async def delete_product(
     d = await dao.get(product_id)
     if not d:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"Defect <id: {product_id} Not Found")
-    await dao.delete(d)
+    await dao.quasi_delete(d)
 
 
 ########################################################################

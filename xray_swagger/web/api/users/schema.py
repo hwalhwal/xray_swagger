@@ -10,6 +10,7 @@ from xray_swagger.db.models.user import AuthLevel
 class UserModelDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    id: int
     username: str
     password: SecretStr
 
@@ -47,5 +48,13 @@ class UserCreateDTO(BaseModel):
 class UserUpdateDTO(BaseModel):
     fullname: Optional[str] = None
     phone_number: Optional[PhoneNumber] = None
+    company: Optional[str] = None
+    job_title: Optional[str] = None
     authlevel: Optional[AuthLevel] = None
+
+
+class UserUpdateMeDTO(BaseModel):
+    fullname: Optional[str] = None
+    phone_number: Optional[PhoneNumber] = None
+    company: Optional[str] = None
     job_title: Optional[str] = None
