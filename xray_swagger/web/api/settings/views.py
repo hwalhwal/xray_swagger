@@ -120,7 +120,7 @@ async def get_settings_product_param_by_name(
 #
 ##########################################################################################
 
-from xray_swagger.web.api.products.views import router as products_router
+from xray_swagger.web.api.products.views import router as products_router  # noqa: E402
 
 
 @products_router.post(

@@ -15,10 +15,8 @@ def register_process_time_middleware(app: FastAPI) -> None:
     async def add_process_time_header(request: Request, call_next):
         """
         Middleware to measure processing time for an api request.
-        `X-Process-Time` indicates time elapsed for the request will be added to every response header
-        :param request:
-        :param call_next:
-        :return:
+        `X-Process-Time` indicates time elapsed for the request
+        will be added to every response header
         """
         url_path = request.url.path
         if url_path.startswith("/api") and not url_path.endswith(".json"):

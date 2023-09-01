@@ -48,7 +48,6 @@ repos:
     name: Linter ruff check
     entry: poetry run ruff check
     language: system
-    pass_filenames: false
     types: [python]
 
 exclude: 'migrations/.*|tests/.*'

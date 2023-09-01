@@ -127,7 +127,8 @@ async def get_inspection_session_by_id(
     if not d:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"Product <id: {product_id} Not Found")
     logger.debug(d.image_s3_key)
-    # DTO에서 기본적으로 relationship field를 집어넣으려면 selectinload or joinedload를 사용해서 미리 넣어둔다.
+    # DTO에서 기본적으로 relationship field를 집어넣으려면
+    #          selectinload or joinedload를 사용해서 미리 넣어둔다.
     # 그렇지 않고 때때로 쓰거나 쓰지 않으면 AsyncAttrs Mixin에 의해 lazyload하도록 둔다.
     # https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html#preventing-implicit-io-when-using-asyncsession
     # prd = await d.awaitable_attrs.product
