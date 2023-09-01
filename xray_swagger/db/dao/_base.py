@@ -1,4 +1,4 @@
-from typing import Generic, Sequence, TypeVar
+from typing import Generic, Sequence, TypeVar, get_args
 
 from fastapi import Depends
 from loguru import logger
@@ -17,28 +17,35 @@ UpdateDTOType = TypeVar("UpdateDTOType", bound=BaseModel)
 class DAOBase(Generic[ModelType, CreateDTOType, UpdateDTOType]):
     """Base Class for DAO."""
 
-    model = ModelType
+    MODEL: ModelType
 
     def __init__(self, session: AsyncSession = Depends(get_db_session)) -> None:
         self.session = session
 
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        logger.debug(f"CLASS <{cls.__name__}>")
+        logger.debug(f"{cls.__orig_bases__=}")
+        # subclass에서 Generic 0의 orm Model class를 획득할 수 있다.
+        cls.MODEL = get_args(cls.__orig_bases__[0])[0]
+
     async def create(self, payload: CreateDTOType) -> ModelType:
-        logger.debug(f"=== CREATE {ModelType.__name__}")
+        logger.debug(f"=== CREATE {self.MODEL.__name__}")
         async with self.session.begin_nested():
-            new_product = ModelType(**payload.model_dump(exclude_none=True))
+            new_product = self.MODEL(**payload.model_dump(exclude_none=True))
             self.session.add(new_product)
         return new_product
 
     async def get(self, id: int) -> ModelType | None:
-        logger.debug(f"=== GET 1 {ModelType.__name__}")
+        logger.debug(f"=== GET 1 {self.MODEL.__name__}")
         raw = await self.session.execute(
-            select(self.model).where(self.model.id == id),
+            select(self.MODEL).where(self.MODEL.id == id),
         )
         return raw.scalar()
 
     async def get_all(self) -> Sequence[ModelType]:
-        logger.debug(f"=== GET ALL {ModelType.__name__}")
-        raw = await self.session.execute(select(ModelType))
+        logger.debug(f"=== GET ALL {self.MODEL.__name__}")
+        raw = await self.session.execute(select(self.MODEL))
         return raw.scalars().fetchall()
 
     async def update(
