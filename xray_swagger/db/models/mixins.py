@@ -15,7 +15,6 @@ class _ModifiedAt:
         DateTime,
         nullable=False,
         server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
     )
 
 

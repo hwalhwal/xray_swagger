@@ -12,7 +12,7 @@ from pydantic import (
 )
 
 
-def dt_to_utcnow(dt: datetime, nxt: SerializerFunctionWrapHandler):
+def dt_to_utcnow(dt: datetime, nxt: SerializerFunctionWrapHandler) -> datetime:
     ohne_tz = dt.replace(tzinfo=None)
     return nxt(ohne_tz)
 
@@ -21,7 +21,7 @@ UTCDatetime = Annotated[datetime, WrapSerializer(dt_to_utcnow)]
 # TODO: Used This in all schemas[DTO]
 
 
-def laggedutc():
+def laggedutc() -> datetime:
     now = datetime.utcnow()
     return now + timedelta(minutes=5)
 

@@ -40,11 +40,11 @@ class UserDAO(DAOBase):
         print(f"{new_user.id=}")
         return new_user
 
-    async def get_by_id(self, id: int) -> User:
+    async def get_by_id(self, id: int) -> User | None:
         raw = await self.session.execute(select(User).where(User.id == id))
         return raw.scalar()
 
-    async def get_by_username(self, name: str) -> User:
+    async def get_by_username(self, name: str) -> User | None:
         raw = await self.session.execute(select(User).where(User.username == name))
         return raw.scalar()
 
@@ -52,7 +52,7 @@ class UserDAO(DAOBase):
         # TODO: delete 된 유저 filter 기본 (관리자 이상만 해제가능)
         # TODO: sort, query, pagenation
         raw = await self.session.execute(select(User))
-        return list(raw.scalars().fetchall())
+        return raw.scalars().fetchall()
 
     async def update(self, db_obj: User, update_fields: UserUpdateDTO) -> None:
         refined_update_fields = update_fields.model_dump(exclude_unset=True)

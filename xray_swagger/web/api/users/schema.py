@@ -40,7 +40,7 @@ class UserCreateDTO(BaseModel):
     authlevel: Optional[AuthLevel] = AuthLevel.OPERATOR
 
     @field_serializer("password")
-    def serialize_password(self, password: SecretStr, _info):
+    def serialize_password(self, password: SecretStr, _info) -> str:
         return password.get_secret_value()
 
 

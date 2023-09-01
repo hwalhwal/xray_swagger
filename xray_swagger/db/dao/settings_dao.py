@@ -65,7 +65,7 @@ class SettingsProductDAO(DAOBase):
     async def get(
         self,
         product_id: int,
-        setting_param_name: FullSettingsProductDTO,
+        setting_param_name: str,
     ) -> SettingsProduct:
         raw = await self.session.execute(
             select(SettingsProduct).where(
