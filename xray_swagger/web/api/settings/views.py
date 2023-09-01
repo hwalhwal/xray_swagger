@@ -11,7 +11,7 @@ from xray_swagger.db.dao.settings_dao import (
     SettingsProductDAO,
     SettingsProductParameterDAO,
 )
-from xray_swagger.web.middlewares.permissions import (
+from xray_swagger.web.dependencies.permissions import (
     IsAuthenticated,
     IsEngineer,
     IsSupervisor,

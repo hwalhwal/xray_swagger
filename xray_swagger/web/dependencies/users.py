@@ -1,4 +1,3 @@
-# TODO: rename to dependencies
 import secrets
 from datetime import datetime, timedelta
 from typing import Annotated
@@ -11,6 +10,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from xray_swagger.db.dao.user_dao import UserDAO
+from xray_swagger.db.models.user import User
 
 
 class Token(BaseModel):
@@ -27,7 +27,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
-security = OAuth2PasswordBearer(tokenUrl=f"/auth/token")
+security = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
 def verify_password(plain_password, hashed_password) -> bool:
@@ -43,16 +43,16 @@ def get_password_hash(password):
     return password
 
 
-async def authenticate_user(username: str, password: str, user_dao: UserDAO):
+async def authenticate_user(username: str, password: str, user_dao: UserDAO) -> User | None:
     user = await user_dao.get_by_username(username)
     if not user:
-        return False
+        return
     if not verify_password(password, user.password):
-        return False
+        return
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -66,7 +66,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 async def get_current_user(
     token: Annotated[str, Depends(security)],
     user_dao: UserDAO = Depends(),
-):
+) -> User:
     CredentialsException = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid authentication credentials",
@@ -90,8 +90,8 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-    current_user: Annotated[str, Depends(get_current_user)],
-):
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
     if current_user.deleted_at:
         logger.warning(f"User {current_user.username} was deleted at {current_user.deleted_at}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")

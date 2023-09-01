@@ -77,7 +77,7 @@ class SettingsProductDAO(DAOBase):
         )
         return raw.scalar()
 
-    async def update(self, db_obj: SettingsProduct, payload: SettingsProductUpdateDTO):
+    async def update(self, db_obj: SettingsProduct, payload: SettingsProductUpdateDTO) -> None:
         refined_update_fields = payload.model_dump(exclude_unset=True)
         logger.debug(f"{refined_update_fields=}")
         for k in refined_update_fields.keys():
@@ -108,9 +108,8 @@ class SettingsGlobalDAO(DAOBase):
     async def update(self, db_obj: SettingsGlobal, update_value) -> None:
         json_validator = fastjsonschema.compile(db_obj.json_schema)
         new_value = json_validator(update_value)
-        db_obj.value = new_value
-        await self.session.commit()
-        await self.session.refresh(db_obj)
+        async with self.session.begin_nested():
+            db_obj.value = new_value
 
 
 # class SettingsProductChangelogDAO(IDAO): ...

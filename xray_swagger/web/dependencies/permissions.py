@@ -1,15 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated, Sequence, Type
 
 from fastapi import HTTPException, Request, status
 from fastapi.param_functions import Depends
 from loguru import logger
 
-from xray_swagger.db.models.user import AuthLevel
-from xray_swagger.web.api.deps import get_current_active_user
-
-if TYPE_CHECKING:
-    from xray_swagger.web.api.users.schema import UserModelDTO
+from xray_swagger.db.models.user import AuthLevel, User
+from xray_swagger.web.dependencies.users import get_current_active_user
 
 
 class BasePermission(ABC):
@@ -34,13 +31,12 @@ class BasePermission(ABC):
 
     error_msg = "Forbidden."
     status_code = status.HTTP_403_FORBIDDEN
-    error_code = status.HTTP_403_FORBIDDEN
 
     @abstractmethod
-    def has_required_permissions(self, request: Request, user: "UserModelDTO") -> bool:
+    def has_required_permissions(self, request: Request, user: User) -> bool:
         ...
 
-    def __init__(self, request: Request, user: "UserModelDTO"):
+    def __init__(self, request: Request, user: User):
         if not self.has_required_permissions(request, user):
             raise HTTPException(
                 status_code=self.status_code,
@@ -63,7 +59,7 @@ class IsAuthenticated(BasePermission):
     error_msg = "Not authenticated."
     status_code = status.HTTP_401_UNAUTHORIZED
 
-    def has_required_permissions(self, request: Request, user: "UserModelDTO") -> bool:
+    def has_required_permissions(self, request: Request, user: User) -> bool:
         logger.debug("=== Is Authenticated?")
         logger.debug(user)
         logger.debug(user.authlevel)
@@ -76,7 +72,7 @@ class IsSupervisor(BasePermission):
     error_msg = "Your permission is not enough to execute this operation"
     status_code = status.HTTP_403_FORBIDDEN
 
-    def has_required_permissions(self, request: Request, user: "UserModelDTO") -> bool:
+    def has_required_permissions(self, request: Request, user: User) -> bool:
         logger.debug("=== Is Supervisor?")
         logger.debug(user)
         logger.debug(f"{user.authlevel} = {user.authlevel.value}")
@@ -89,7 +85,7 @@ class IsEngineer(BasePermission):
     error_msg = "Your permission is not enough to execute this operation"
     status_code = status.HTTP_403_FORBIDDEN
 
-    def has_required_permissions(self, request: Request, user: "UserModelDTO") -> bool:
+    def has_required_permissions(self, request: Request, user: User) -> bool:
         logger.debug("=== Is Engineer?")
         logger.debug(f"{user.authlevel} = {user.authlevel.value}")
         return user.authlevel.value >= AuthLevel.ENGINEER.value
@@ -101,15 +97,15 @@ class PermissionsDependency:
     classes from one place inside route definition.
     """
 
-    def __init__(self, permissions_classes: list):
+    def __init__(self, permissions_classes: Sequence[Type[BasePermission]]) -> None:
         logger.debug("=== Permission List", permissions_classes)
         self.permissions_classes = permissions_classes
 
-    def __call__(
+    async def __call__(
         self,
         request: Request,
-        user: Annotated["UserModelDTO", Depends(get_current_active_user)],
-    ):
+        user: Annotated[User, Depends(get_current_active_user)],
+    ) -> bool:
         logger.debug("Permission deps resolving".center(100, "#"))
         for permission_class in self.permissions_classes:
             permission_class(request=request, user=user)

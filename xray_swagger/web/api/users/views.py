@@ -5,12 +5,13 @@ from fastapi.param_functions import Depends
 from loguru import logger
 
 from xray_swagger.db.dao.user_dao import UserDAO
-from xray_swagger.web.api.deps import get_current_active_user
-from xray_swagger.web.middlewares.permissions import (
+from xray_swagger.db.models.user import User
+from xray_swagger.web.dependencies.permissions import (
     IsAuthenticated,
     IsSupervisor,
     PermissionsDependency,
 )
+from xray_swagger.web.dependencies.users import get_current_active_user
 
 from .schema import UserCreateDTO, UserModelDTO, UserUpdateDTO
 
@@ -19,7 +20,7 @@ router = APIRouter()
 
 @router.get("/me")
 def read_current_user(
-    user: Annotated[UserModelDTO, Depends(get_current_active_user)],
+    user: Annotated[User, Depends(get_current_active_user)],
 ) -> UserModelDTO:
     logger.debug(type(user))
     logger.debug(user)
@@ -122,7 +123,7 @@ async def update_user(
     logger.info(
         f"Update user[{user.username}] with: {update_payload.model_dump(exclude_none=True)}",
     )
-    user = await user_dao.update(user, update_payload)
+    await user_dao.update(user, update_payload)
 
     return user
 
