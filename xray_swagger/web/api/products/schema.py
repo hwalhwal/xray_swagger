@@ -9,7 +9,9 @@ from xray_swagger.db.models.defect import DefectCategory
 class ProductDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    id: int
     name: str
+
     # inspection_sessions: URL
     # settings: URL
 
@@ -48,8 +50,6 @@ class InspectionSessionDTO(BaseModel):
 
 
 class InspectionSessionCreateDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     product_id: int | None = None
     image_s3_key: str
 
@@ -63,7 +63,18 @@ class InspectionSessionCreateDTO(BaseModel):
         return value.replace(tzinfo=None)
 
 
+class InspectionSessionUpdateDTO(BaseModel):
+    image_s3_key: str | None = None
+
+    session_started_at: datetime | None = None
+    session_ended_at: datetime | None = None
+
+    system_error: str | None = None
+
+
 class DefectDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     defect_category: DefectCategory
     inspection_module: str
@@ -74,7 +85,13 @@ class DefectDTO(BaseModel):
 
 class DefectCreateDTO(BaseModel):
     defect_category: DefectCategory
-    inspection_module: str
+    inspection_module: str | None = None
     coordinates: conlist(int, min_length=4, max_length=4)
-    product_id: int | None = None
     inspection_session_id: int
+
+
+class DefectUpdateDTO(BaseModel):
+    defect_category: DefectCategory | None = None
+    inspection_module: str | None = None
+    coordinates: conlist(int, min_length=4, max_length=4) | None = None
+    inspection_session_id: int | None = None

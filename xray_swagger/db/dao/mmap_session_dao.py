@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Sequence
 
 from loguru import logger
 from sqlalchemy import select
@@ -20,11 +20,11 @@ class MmapSessionDAO(DAOBase[MmapSession, MmapSessionCreateDTO, MmapSessionUpdat
         )
         return raw.scalar()
 
-    async def filter(self) -> list[MmapSession]:
+    async def filter(self) -> Sequence[MmapSession]:
         # TODO: filter query
-        logger.debug(f"{self.model.__name__} filter query")
+        logger.debug(f"{self.MODEL.__name__} filter query")
         q = [MmapSession.is_preserved == True]
         raw = await self.session.execute(
             select(MmapSession).filter(*q),
         )
-        return list(raw.scalars().fetchall())
+        return raw.scalars().fetchall()

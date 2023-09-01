@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Sequence
 
 from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
@@ -13,21 +13,23 @@ from xray_swagger.web.dependencies.users import get_current_active_user
 from .schema import (
     DefectCreateDTO,
     DefectDTO,
+    DefectUpdateDTO,
     InspectionSessionCreateDTO,
     InspectionSessionDTO,
+    ProductCreateDTO,
     ProductDTO,
 )
 
 router = APIRouter()
 
 
-@router.post(path="/", status_code=status.HTTP_201_CREATED, response_model=ProductDTO)
+@router.post(path="/", status_code=status.HTTP_201_CREATED)
 async def create_product(
     product_name: str,
     user: Annotated[User, Depends(get_current_active_user)],
     dao: ProductDAO = Depends(),
-):
-    new_product_payload = ProductDTO(
+) -> ProductDTO:
+    new_product_payload = ProductCreateDTO(
         name=product_name,
         creator_id=user.id,
         last_editor_id=user.id,
@@ -36,10 +38,12 @@ async def create_product(
     return new_product
 
 
-@router.get(path="/", response_model=list[ProductDTO])
+@router.get(path="/")
 async def get_all_products(
     dao: ProductDAO = Depends(),
-):
+) -> Sequence[ProductDTO]:
+    # TODO: not deleted only
+
     d = await dao.get_all()
     if not d:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Nothing.")
@@ -47,45 +51,63 @@ async def get_all_products(
     return d
 
 
-@router.get(path="/{product_id}", response_model=ProductDTO)
+@router.get(path="/{product_id}")
 async def get_product_by_id(
     product_id: int,
     dao: ProductDAO = Depends(),
-):
+) -> ProductDTO:
+    # TODO: not deleted only
+
     d = await dao.get(product_id)
     if not d:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Product <id: {product_id} Not Found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Product <id: {product_id}> Not Found")
     return d
 
 
-@router.patch(path="/{product_id}", response_model=ProductDTO)
+@router.patch(path="/{product_id}")
 async def update_product(
     product_id: int,
     product_name: str,
     user: Annotated[User, Depends(get_current_active_user)],
     dao: ProductDAO = Depends(),
-):
+) -> ProductDTO:
     product = await dao.get(product_id)
     if not product:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Product <id: {product_id} Not Found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Product <id: {product_id}> Not Found")
     update_product_payload = ProductDTO(
         name=product_name,
         last_editor_id=user.id,
         modified_at=datetime.utcnow(),
     )
-    await dao.update(product, update_product_payload)
+    await dao.update(product, update_product_payload, exclude_unset=True)
     return product
+
+
+@router.delete(path="/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(
+    product_id: int,
+    dao: ProductDAO = Depends(),
+) -> None:
+    # TODO: not deleted only
+    d = await dao.get(product_id)
+    if not d:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Defect <id: {product_id} Not Found")
+    await dao.delete(d)
+
+
+########################################################################
+TAG_INSPECTION_SESSION = ["inspection-sessions"]
 
 
 @router.post(
     path="/{product_id}/inspection-sessions",
     status_code=status.HTTP_201_CREATED,
-    tags=["inspection-sessions"],
+    tags=TAG_INSPECTION_SESSION,
 )
 async def create_inspection_session(
     product_id: int,
     payload: InspectionSessionCreateDTO,
-    isp_sess_dao: InspectionSessionDAO = Depends(),
+    dao: InspectionSessionDAO = Depends(),
 ) -> InspectionSessionDTO:
     # if isp_sess_dupl := await isp_sess_dao.get_sess(product_id, payload.image_s3_key):
     #     logger.warning(f"User name: {isp_sess_dupl.username} Fullname: {isp_sess_dupl.fullname}")
@@ -94,21 +116,22 @@ async def create_inspection_session(
     #         detail="A user with that username already exists.",
     #     )
     payload.product_id = product_id
-    new_isp_sess = await isp_sess_dao.create(payload)
+    new_isp_sess = await dao.create(payload)
     logger.info(new_isp_sess.__dict__)
     return new_isp_sess
 
 
 @router.get(
     path="/{product_id}/inspection-sessions",
-    tags=["inspection-sessions"],
+    tags=TAG_INSPECTION_SESSION,
 )
 async def get_inspection_sessions(
     product_id: int,
     page: int = 0,
     size: int = 20,
     dao: InspectionSessionDAO = Depends(),
-) -> list[InspectionSessionDTO]:
+) -> Sequence[InspectionSessionDTO]:
+    # TODO: pagination
     d = await dao.get_all(product_id, offset=page, limit=size)
     return d
 
@@ -116,7 +139,7 @@ async def get_inspection_sessions(
 # TODO: 인조키가 아닌 식별 가능한 복합키를 고안할 것.
 @router.get(
     path="/{product_id}/inspection-sessions/{isp_sess_id}",
-    tags=["inspection-sessions"],
+    tags=TAG_INSPECTION_SESSION,
 )
 async def get_inspection_session_by_id(
     product_id: int,
@@ -136,10 +159,14 @@ async def get_inspection_session_by_id(
     return d
 
 
+########################################################################
+TAG_PRODUCT_DEFECT = ["product-defects"]
+
+
 @router.post(
     path="/{product_id}/defects",
     status_code=status.HTTP_201_CREATED,
-    tags=["product-defects"],
+    tags=TAG_PRODUCT_DEFECT,
 )
 async def create_defect(
     product_id: int,
@@ -153,17 +180,57 @@ async def create_defect(
     return new_defect
 
 
-@router.get(
-    path="/{product_id}/defects",
-    tags=["product-defects"],
-)
-async def get_defects(
+@router.get(path="/{product_id}/defects", tags=TAG_PRODUCT_DEFECT)
+async def filter_defects(
     product_id: int,
     isp_sess_id: int | None = None,
     defect_category: int | None = None,
     dao: DefectDAO = Depends(),
-) -> list[DefectDTO]:
-    defect_category = DefectCategory(defect_category)
-    print(defect_category)
+) -> Sequence[DefectDTO]:
+    defect_category = DefectCategory(defect_category) if defect_category else None
+    logger.debug(defect_category)
     d = await dao.filter(product_id, isp_sess_id, defect_category)
     return d
+
+
+@router.get(path="/{product_id}/defects/{defect_id}", tags=TAG_PRODUCT_DEFECT)
+async def get_defect(
+    defect_id: int,
+    dao: DefectDAO = Depends(),
+) -> DefectDTO:
+    d = await dao.get(defect_id)
+    if not d:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Defect <id: {defect_id} Not Found")
+    return d
+
+
+@router.patch(
+    path="/{product_id}/defects/{defect_id}",
+    tags=TAG_PRODUCT_DEFECT,
+)
+async def update_defect(
+    defect_id: int,
+    payload: DefectUpdateDTO,
+    dao: DefectDAO = Depends(),
+) -> DefectDTO:
+    logger.debug(payload)
+    d = await dao.get(defect_id)
+    if not d:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Defect <id: {defect_id} Not Found")
+    await dao.update(d, payload, exclude_none=True)
+    return d
+
+
+@router.delete(
+    path="/{product_id}/defects/{defect_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=TAG_PRODUCT_DEFECT,
+)
+async def delete_defect(
+    defect_id: int,
+    dao: DefectDAO = Depends(),
+) -> None:
+    d = await dao.get(defect_id)
+    if not d:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Defect <id: {defect_id} Not Found")
+    await dao.delete(d)
