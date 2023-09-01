@@ -9,7 +9,7 @@ from redis.asyncio import ConnectionPool, Redis
 
 from xray_swagger.db.dao.user_dao import UserDAO
 from xray_swagger.services.redis.dependency import get_redis_pool
-from xray_swagger.web.api.deps import (
+from xray_swagger.web.dependencies.users import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
     authenticate_user,

@@ -46,7 +46,7 @@ class MmapSessionDAO(DAOBase):
         )
         return list(raw.scalars().fetchall())
 
-    async def update(self, db_obj: MmapSession, payload: MmapSessionUpdateDTO):
+    async def update(self, db_obj: MmapSession, payload: MmapSessionUpdateDTO) -> None:
         refined_update_fields = payload.model_dump(exclude_unset=True)
         logger.debug(f"{refined_update_fields=}")
         for k in refined_update_fields.keys():

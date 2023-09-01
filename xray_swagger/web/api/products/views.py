@@ -7,8 +7,8 @@ from loguru import logger
 
 from xray_swagger.db.dao.products_dao import DefectDAO, InspectionSessionDAO, ProductDAO
 from xray_swagger.db.models.defect import DefectCategory
-from xray_swagger.web.api.deps import get_current_active_user
-from xray_swagger.web.api.users.schema import UserModelDTO
+from xray_swagger.db.models.user import User
+from xray_swagger.web.dependencies.users import get_current_active_user
 
 from .schema import (
     DefectCreateDTO,
@@ -24,7 +24,7 @@ router = APIRouter()
 @router.post(path="/", status_code=status.HTTP_201_CREATED, response_model=ProductDTO)
 async def create_product(
     product_name: str,
-    user: Annotated[UserModelDTO, Depends(get_current_active_user)],
+    user: Annotated[User, Depends(get_current_active_user)],
     dao: ProductDAO = Depends(),
 ):
     new_product_payload = ProductDTO(
@@ -62,7 +62,7 @@ async def get_product_by_id(
 async def update_product(
     product_id: int,
     product_name: str,
-    user: Annotated[UserModelDTO, Depends(get_current_active_user)],
+    user: Annotated[User, Depends(get_current_active_user)],
     dao: ProductDAO = Depends(),
 ):
     product = await dao.get(product_id)

@@ -54,7 +54,7 @@ class UserDAO(DAOBase):
         raw = await self.session.execute(select(User))
         return list(raw.scalars().fetchall())
 
-    async def update(self, db_obj: User, update_fields: UserUpdateDTO) -> User:
+    async def update(self, db_obj: User, update_fields: UserUpdateDTO) -> None:
         refined_update_fields = update_fields.model_dump(exclude_unset=True)
         for k in refined_update_fields.keys():
             print(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
@@ -66,7 +66,6 @@ class UserDAO(DAOBase):
 
         for k in refined_update_fields.keys():
             print(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
-        return db_obj
 
     async def delete(self, db_obj: User) -> None:
         db_obj.deleted_at = datetime.utcnow()

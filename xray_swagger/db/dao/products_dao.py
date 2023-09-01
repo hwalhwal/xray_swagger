@@ -49,7 +49,7 @@ class ProductDAO(DAOBase):
         )
         return list(raw.scalars().fetchall())
 
-    async def update(self, db_obj: Product, update_fields: "ProductDTO") -> Product:
+    async def update(self, db_obj: Product, update_fields: "ProductDTO") -> None:
         refined_update_fields = update_fields.model_dump(exclude_none=True)
         for k in refined_update_fields.keys():
             print(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
@@ -61,7 +61,6 @@ class ProductDAO(DAOBase):
 
         for k in refined_update_fields.keys():
             print(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
-        return db_obj
 
 
 class InspectionSessionDAO(DAOBase):
