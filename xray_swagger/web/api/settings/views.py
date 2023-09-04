@@ -1,12 +1,11 @@
 import json
-from datetime import datetime
 from typing import Any, Sequence
 
 import fastjsonschema
 from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from loguru import logger
-from pydantic_core import ErrorDetails
+from pydantic.json_schema import JsonSchemaValue
 
 from xray_swagger.db.dao.settings_dao import (
     SettingsGlobalDAO,
@@ -25,6 +24,7 @@ from xray_swagger.web.dependencies.users import get_current_active_user
 from .schema import (
     SettingsGlobalDTO,
     SettingsGlobalUpdateDTO,
+    SettingsProductCreateDTO,
     SettingsProductDTO,
     SettingsProductParameterDTO,
     SettingsProductUpdateDTO,
@@ -41,39 +41,7 @@ async def get_all_global_settings(
     return d
 
 
-async def __build_global_setting_update_payload(
-    param_value: bool | int,
-    param_schema: str,
-    userId: int,
-):
-    json_validator = fastjsonschema.compile(param_schema)
-    try:
-        validated_value = json_validator(param_value)
-        logger.debug(f"{validated_value}({type(validated_value)})")
-        update_payload = SettingsGlobalUpdateDTO(
-            value=validated_value,
-            last_editor_id=userId,
-            modified_at=datetime.utcnow(),
-        )
-    except fastjsonschema.exceptions.JsonSchemaValueException as err:
-        logger.error(err.__dict__)
-        detail = ErrorDetails(
-            type="value_error",
-            loc=err.name.split("."),
-            msg=err.message,
-            input=err.value,
-            ctx=err.definition,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=detail,
-        ) from err
-    return update_payload
-
-
-@router.patch(
-    path="/global/watchdog-timer",
-)
+@router.patch(path="/global/watchdog-timer")
 async def update_watchdog_timer(
     new_value: bool,
     user: User = Depends(get_current_active_user),
@@ -83,12 +51,12 @@ async def update_watchdog_timer(
     logger.debug(f"User permission check <IsEngineer> passed? {authorize=}")
     d = await dao.get("Watchdog.Timer")
 
-    update_payload = await __build_global_setting_update_payload(
-        new_value,
-        d.json_schema,
-        user.id,
+    payload = SettingsGlobalUpdateDTO.from_raw_value(
+        param_value=new_value,
+        param_schema=d.json_schema,
+        user_id=user.id,
     )
-    await dao.update(d, update_payload, exclude_none=True)
+    await dao.update(d, payload, exclude_none=True)
 
     return d
 
@@ -103,12 +71,13 @@ async def update_conveyor_direction(
     dao: SettingsGlobalDAO = Depends(),
 ) -> SettingsGlobalDTO:
     d = await dao.get("Conveyor.Direction")
-    update_payload = await __build_global_setting_update_payload(
-        new_value,
-        d.json_schema,
-        user.id,
+
+    payload = SettingsGlobalUpdateDTO.from_raw_value(
+        param_value=new_value,
+        param_schema=d.json_schema,
+        user_id=user.id,
     )
-    await dao.update(d, update_payload, exclude_none=True)
+    await dao.update(d, payload, exclude_none=True)
 
     return d
 
@@ -123,19 +92,18 @@ async def update_inspection_mode(
     dao: SettingsGlobalDAO = Depends(),
 ) -> SettingsGlobalDTO:
     d = await dao.get("Inspection.Mode")
-    update_payload = await __build_global_setting_update_payload(
-        new_value,
-        d.json_schema,
-        user.id,
+
+    payload = SettingsGlobalUpdateDTO.from_raw_value(
+        param_value=new_value,
+        param_schema=d.json_schema,
+        user_id=user.id,
     )
-    await dao.update(d, update_payload, exclude_none=True)
+    await dao.update(d, payload, exclude_none=True)
 
     return d
 
 
-@router.get(
-    path="/product-params",
-)
+@router.get(path="/product-params")
 async def get_settings_product_params(
     name_query: str = None,
     dao: SettingsProductParameterDAO = Depends(),
@@ -183,6 +151,7 @@ async def create_product_setting(
     value: Any,
     settings_product_dao: SettingsProductDAO = Depends(),
     param_dao: SettingsProductParameterDAO = Depends(),
+    user: User = Depends(get_current_active_user),
 ) -> SettingsProductDTO:
     logger.debug(f"{setting_param_name}")
     logger.debug(f"{value}({type(value)})")
@@ -192,22 +161,16 @@ async def create_product_setting(
             status.HTTP_404_NOT_FOUND,
             f"Not found settings param: {setting_param_name}",
         )
-    param_schema = param.json_schema
-    value = json.loads(value)
-    logger.debug(f"{value}({type(value)})")
-    json_validator = fastjsonschema.compile(param_schema)
-    value = json_validator(value)
-    logger.debug(f"{value}({type(value)})")
-    # insert
-    new_row = SettingsProductUpdateDTO(
+    payload = SettingsProductCreateDTO.from_raw_value(
+        json.loads(value),
+        param.json_schema,
         setting_param_name=setting_param_name,
-        version=1,
-        value=value,
         product_id=product_id,
-        creator_id=1,
-        last_editor_id=1,
+        user_id=user.id,
     )
-    await settings_product_dao.create(new_row)
+    logger.debug(payload)
+    new_row = await settings_product_dao.create(payload)
+    return new_row
 
 
 @products_router.get(
@@ -243,11 +206,11 @@ async def get_product_setting(
 async def update_product_setting(
     product_id: int,
     setting_param_name: str,
-    value: Any,
+    new_value: Any,
     settings_product_dao: SettingsProductDAO = Depends(),
     param_dao: SettingsProductParameterDAO = Depends(),
 ) -> SettingsProductDTO:
-    logger.debug(f"{value=}({type(value)})")
+    logger.debug(f"{new_value=}({type(new_value)})")
     param = await param_dao.get(setting_param_name)
     settings_product = await settings_product_dao.get(product_id, setting_param_name)
     if not param or not settings_product:
@@ -258,18 +221,20 @@ async def update_product_setting(
     old_value = settings_product.value
     logger.debug(f"{settings_product=!s}")
 
-    value = await validate(json.loads(value), param.json_schema)
-    logger.debug(f"{value=}({type(value)})")
-    logger.debug(f"{old_value=} == {value=}")
+    new_value = await validate(json.loads(new_value), param.json_schema)
+    logger.debug(f"{new_value=}({type(new_value)})")
+    logger.debug(f"{old_value=} == {new_value=}")
     # Update only when the new value is not equal to the old value
-    if old_value != value:  # TODO: non hashable type comparison
-        version = settings_product.version + 1
-        update_payload = SettingsProductUpdateDTO(version=version, value=value, last_editor_id=2)
-        await settings_product_dao.update(settings_product, update_payload)
+    if old_value == new_value:  # TODO: non hashable type comparison
+        return settings_product
+
+    version = settings_product.version + 1
+    update_payload = SettingsProductUpdateDTO(version=version, value=new_value, last_editor_id=2)
+    await settings_product_dao.update(settings_product, update_payload)
 
     return settings_product
 
 
-async def validate(value: Any, schema: dict):
+async def validate(value: Any, schema: JsonSchemaValue):
     json_validator = fastjsonschema.compile(schema)
     return json_validator(value)
