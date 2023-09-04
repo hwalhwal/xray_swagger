@@ -15,13 +15,15 @@ CreateDTOType = TypeVar("CreateDTOType", bound=BaseModel)
 UpdateDTOType = TypeVar("UpdateDTOType", bound=BaseModel)
 
 
-class DAOBase(Generic[ModelType, CreateDTOType, UpdateDTOType]):
+class IDAO:
+    def __init__(self, session: AsyncSession = Depends(get_db_session)) -> None:
+        self.session = session
+
+
+class DAOBase(Generic[ModelType, CreateDTOType, UpdateDTOType], IDAO):
     """Base Class for DAO."""
 
     MODEL: ModelType
-
-    def __init__(self, session: AsyncSession = Depends(get_db_session)) -> None:
-        self.session = session
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()

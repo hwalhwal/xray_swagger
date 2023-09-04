@@ -1,24 +1,22 @@
 from __future__ import annotations
 
-import typing
+from typing import Sequence
 
-import fastjsonschema
-from loguru import logger
 from sqlalchemy import and_, select
 
-from xray_swagger.db.dao._base import DAOBase
+from xray_swagger.db.dao._base import IDAO, DAOBase
 from xray_swagger.db.models.settings import (
     SettingsGlobal,
     SettingsProduct,
     SettingsProductParameter,
 )
 
-if typing.TYPE_CHECKING:
-    from xray_swagger.web.api.settings.schema import (
-        FullSettingsProductDTO,
-        SettingsProductUpdateDTO,
-    )
-
+# if TYPE_CHECKING:
+from xray_swagger.web.api.settings.schema import (
+    SettingsGlobalUpdateDTO,
+    SettingsProductCreateDTO,
+    SettingsProductUpdateDTO,
+)
 
 __all__ = (
     "SettingsProductParameterDAO",
@@ -27,7 +25,7 @@ __all__ = (
 )
 
 
-class SettingsProductParameterDAO(DAOBase):
+class SettingsProductParameterDAO(IDAO):
     async def get(self, setting_param_name: str) -> SettingsProductParameter:
         raw = await self.session.execute(
             select(SettingsProductParameter).where(
@@ -36,31 +34,27 @@ class SettingsProductParameterDAO(DAOBase):
         )
         return raw.scalar()
 
-    async def get_all(self) -> list[SettingsProductParameter]:
+    async def get_all(self) -> Sequence[SettingsProductParameter]:
         raw = await self.session.execute(select(SettingsProductParameter))
-        return list(raw.scalars().fetchall())
+        return raw.scalars().fetchall()
 
-    async def filter(self, name_query: str) -> list[SettingsProductParameter]:
+    async def filter(self, name_query: str) -> Sequence[SettingsProductParameter]:
         raw = await self.session.execute(
             select(SettingsProductParameter).where(
                 SettingsProductParameter.setting_param_name.like(name_query),
             ),
         )
-        return list(raw.scalars().fetchall())
+        return raw.scalars().fetchall()
 
 
-class SettingsProductDAO(DAOBase):
-    async def create(self, payload: "FullSettingsProductDTO"):
-        async with self.session.begin_nested():
-            new_settings_product = SettingsProduct(**payload.model_dump(exclude_unset=True))
-            print(new_settings_product)
-            self.session.add(new_settings_product)
-
-    async def filter_by_product(self, product_id: int) -> list[SettingsProduct]:
+class SettingsProductDAO(
+    DAOBase[SettingsProduct, SettingsProductCreateDTO, SettingsProductUpdateDTO],
+):
+    async def filter_by_product(self, product_id: int) -> Sequence[SettingsProduct]:
         raw = await self.session.execute(
             select(SettingsProduct).where(SettingsProduct.product_id == product_id),
         )
-        return list(raw.scalars().fetchall())
+        return raw.scalars().fetchall()
 
     async def get(
         self,
@@ -77,22 +71,10 @@ class SettingsProductDAO(DAOBase):
         )
         return raw.scalar()
 
-    async def update(self, db_obj: SettingsProduct, payload: SettingsProductUpdateDTO) -> None:
-        refined_update_fields = payload.model_dump(exclude_unset=True)
-        logger.debug(f"{refined_update_fields=}")
-        for k in refined_update_fields.keys():
-            logger.debug(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
-        # UPDATE FIELDS
-        async with self.session.begin_nested():
-            logger.debug(f"=== UPDATE {type(db_obj).__name__} ===")
-            for k, v in refined_update_fields.items():
-                db_obj.__setattr__(k, v)
 
-        for k in refined_update_fields.keys():
-            logger.debug(f"{type(db_obj).__name__}.{k} = {db_obj.__getattribute__(k)}")
-
-
-class SettingsGlobalDAO(DAOBase):
+class SettingsGlobalDAO(
+    DAOBase[SettingsGlobal, None, SettingsGlobalUpdateDTO],
+):
     async def get(self, setting_param_name: str) -> SettingsGlobal:
         raw = await self.session.execute(
             select(SettingsGlobal).where(
@@ -101,15 +83,9 @@ class SettingsGlobalDAO(DAOBase):
         )
         return raw.scalar()
 
-    async def get_all(self) -> list[SettingsGlobal]:
+    async def get_all(self) -> Sequence[SettingsGlobal]:
         raw = await self.session.execute(select(SettingsGlobal))
-        return list(raw.scalars().fetchall())
-
-    async def update(self, db_obj: SettingsGlobal, update_value) -> None:
-        json_validator = fastjsonschema.compile(db_obj.json_schema)
-        new_value = json_validator(update_value)
-        async with self.session.begin_nested():
-            db_obj.value = new_value
+        return raw.scalars().fetchall()
 
 
 # class SettingsProductChangelogDAO(IDAO): ...
