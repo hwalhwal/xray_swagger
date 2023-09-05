@@ -8,12 +8,12 @@ from xray_swagger.db.dao._base import IDAO, DAOBase
 from xray_swagger.db.models.settings import (
     SettingsGlobal,
     SettingsProduct,
+    SettingsProductChangelog,
     SettingsProductParameter,
 )
-
-# if TYPE_CHECKING:
 from xray_swagger.web.api.settings.schema import (
     SettingsGlobalUpdateDTO,
+    SettingsProductChangelogUpdateDTO,
     SettingsProductCreateDTO,
     SettingsProductUpdateDTO,
 )
@@ -22,6 +22,7 @@ __all__ = (
     "SettingsProductParameterDAO",
     "SettingsProductDAO",
     "SettingsGlobalDAO",
+    "SettingsProductChangelogDAO",
 )
 
 
@@ -88,4 +89,17 @@ class SettingsGlobalDAO(
         return raw.scalars().fetchall()
 
 
-# class SettingsProductChangelogDAO(IDAO): ...
+class SettingsProductChangelogDAO(
+    DAOBase[SettingsProductChangelog, SettingsProductCreateDTO, SettingsProductChangelogUpdateDTO],
+):
+    async def filter(
+        self,
+        product_id: int,
+        name_query: str | None = None,
+    ) -> Sequence[SettingsProductChangelog]:
+        q = [SettingsProductChangelog.product_id == product_id]
+        # if name_query:
+        raw = await self.session.execute(
+            select(SettingsProductChangelog).filter(*q),
+        )
+        return raw.scalars().fetchall()

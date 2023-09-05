@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from typing import Any, Sequence
 
 import fastjsonschema
@@ -9,6 +10,7 @@ from pydantic.json_schema import JsonSchemaValue
 
 from xray_swagger.db.dao.settings_dao import (
     SettingsGlobalDAO,
+    SettingsProductChangelogDAO,
     SettingsProductDAO,
     SettingsProductParameterDAO,
 )
@@ -20,10 +22,13 @@ from xray_swagger.web.dependencies.permissions import (
     PermissionsDependency,
 )
 from xray_swagger.web.dependencies.users import get_current_active_user
+from xray_swagger.web.utils import make_patch_text
 
 from .schema import (
     SettingsGlobalDTO,
     SettingsGlobalUpdateDTO,
+    SettingsProductChangelogCreateDTO,
+    SettingsProductChangelogDTO,
     SettingsProductCreateDTO,
     SettingsProductDTO,
     SettingsProductParameterDTO,
@@ -209,6 +214,8 @@ async def update_product_setting(
     new_value: Any,
     settings_product_dao: SettingsProductDAO = Depends(),
     param_dao: SettingsProductParameterDAO = Depends(),
+    changelog_dao: SettingsProductChangelogDAO = Depends(),
+    user: User = Depends(get_current_active_user),
 ) -> SettingsProductDTO:
     logger.debug(f"{new_value=}({type(new_value)})")
     param = await param_dao.get(setting_param_name)
@@ -229,8 +236,26 @@ async def update_product_setting(
         return settings_product
 
     version = settings_product.version + 1
-    update_payload = SettingsProductUpdateDTO(version=version, value=new_value, last_editor_id=2)
+    modified_at = datetime.utcnow()
+    update_payload = SettingsProductUpdateDTO(
+        version=version,
+        value=new_value,
+        last_editor_id=user.id,
+        modified_at=modified_at,
+    )
     await settings_product_dao.update(settings_product, update_payload)
+
+    patch = make_patch_text(old_value, new_value)
+    changelog_payload = SettingsProductChangelogCreateDTO(
+        version=version,
+        product_id=product_id,
+        settings_product_id=settings_product.id,
+        patch=patch,
+        last_editor_id=user.id,
+        modified_at=modified_at,
+    )
+    changelog = await changelog_dao.create(changelog_payload)
+    logger.info(changelog)
 
     return settings_product
 
@@ -238,3 +263,18 @@ async def update_product_setting(
 async def validate(value: Any, schema: JsonSchemaValue):
     json_validator = fastjsonschema.compile(schema)
     return json_validator(value)
+
+
+@products_router.get(
+    path="/{product_id}/settings/changelog",
+    tags=["settings", "changelog"],
+)
+async def get_settings_changelog(
+    product_id: int,
+    name_query: str | None = None,
+    dao: SettingsProductChangelogDAO = Depends(),
+    # user: User = Depends(get_current_active_user),
+) -> Sequence[SettingsProductChangelogDTO]:
+    """Get all settings changelogs of the product"""
+    d = await dao.filter(product_id, name_query)
+    return d

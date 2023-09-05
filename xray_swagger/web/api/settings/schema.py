@@ -136,3 +136,32 @@ class SettingsProductUpdateDTO(BaseModel):
     value: AnyType
     last_editor_id: int | None = None
     modified_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class SettingsProductChangelogDTO(BaseModel):
+    id: int
+    version: int
+    product_id: int
+    settings_product_id: int
+    patch: str
+
+    last_editor_id: int | None = None
+    modified_at: datetime | None = None
+
+
+class SettingsProductChangelogCreateDTO(BaseModel):
+    version: int
+    product_id: int
+    settings_product_id: int
+    patch: str
+
+    last_editor_id: int
+    modified_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class SettingsProductChangelogUpdateDTO(BaseModel):
+    version: int
+    patch: str
+
+    last_editor_id: int
+    modified_at: datetime = Field(default_factory=datetime.utcnow)
