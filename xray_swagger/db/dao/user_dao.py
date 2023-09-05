@@ -6,7 +6,7 @@ from xray_swagger.db.dao._base import DAOBase
 from xray_swagger.db.models.user import User
 
 if typing.TYPE_CHECKING:
-    pass
+    from xray_swagger.web.api.users.schema import UserCreateDTO, UserUpdateDTO  # NOQA
 
 __all__ = ("UserDAO",)
 
