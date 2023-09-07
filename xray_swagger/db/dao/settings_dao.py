@@ -13,7 +13,7 @@ from xray_swagger.db.models.settings import (
 )
 from xray_swagger.web.api.settings.schema import (
     SettingsGlobalUpdateDTO,
-    SettingsProductChangelogUpdateDTO,
+    SettingsProductChangelogCreateDTO,
     SettingsProductCreateDTO,
     SettingsProductUpdateDTO,
 )
@@ -90,15 +90,16 @@ class SettingsGlobalDAO(
 
 
 class SettingsProductChangelogDAO(
-    DAOBase[SettingsProductChangelog, SettingsProductCreateDTO, SettingsProductChangelogUpdateDTO],
+    DAOBase[SettingsProductChangelog, SettingsProductChangelogCreateDTO, None],
 ):
     async def filter(
         self,
         product_id: int,
-        name_query: str | None = None,
+        name_query: str,
     ) -> Sequence[SettingsProductChangelog]:
         q = [SettingsProductChangelog.product_id == product_id]
-        # if name_query:
+        if name_query:
+            q.append(SettingsProductChangelog.setting_param_name.like(name_query))
         raw = await self.session.execute(
             select(SettingsProductChangelog).filter(*q),
         )

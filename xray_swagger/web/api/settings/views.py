@@ -4,7 +4,7 @@ from typing import Any, Sequence
 
 import fastjsonschema
 from fastapi import APIRouter, HTTPException, status
-from fastapi.param_functions import Depends
+from fastapi.param_functions import Depends, Path
 from loguru import logger
 from pydantic.json_schema import JsonSchemaValue
 
@@ -229,6 +229,7 @@ async def update_product_setting(
     logger.debug(f"{settings_product=!s}")
 
     new_value = await validate(json.loads(new_value), param.json_schema)
+    logger.debug(f"{old_value=}({type(old_value)})")
     logger.debug(f"{new_value=}({type(new_value)})")
     logger.debug(f"{old_value=} == {new_value=}")
     # Update only when the new value is not equal to the old value
@@ -245,14 +246,17 @@ async def update_product_setting(
     )
     await settings_product_dao.update(settings_product, update_payload)
 
+    logger.debug(f"{old_value=}({type(old_value)})")
+    logger.debug(f"{new_value=}({type(new_value)})")
     patch = make_patch_text(old_value, new_value)
+    logger.debug(patch)
     changelog_payload = SettingsProductChangelogCreateDTO(
-        version=version,
         product_id=product_id,
-        settings_product_id=settings_product.id,
+        setting_param_name=setting_param_name,
+        version=version,
         patch=patch,
         last_editor_id=user.id,
-        modified_at=modified_at,
+        created_at=modified_at,
     )
     changelog = await changelog_dao.create(changelog_payload)
     logger.info(changelog)
@@ -266,15 +270,20 @@ async def validate(value: Any, schema: JsonSchemaValue):
 
 
 @products_router.get(
-    path="/{product_id}/settings/changelog",
+    path="/{product_id}/settings/{name_query}/changelogs",
     tags=["settings", "changelog"],
 )
 async def get_settings_changelog(
     product_id: int,
-    name_query: str | None = None,
+    name_query: str = Path(
+        ...,
+        description="Name query of setting. Use '%' to get all",
+        example="%",
+    ),
     dao: SettingsProductChangelogDAO = Depends(),
     # user: User = Depends(get_current_active_user),
 ) -> Sequence[SettingsProductChangelogDTO]:
     """Get all settings changelogs of the product"""
     d = await dao.filter(product_id, name_query)
+    logger.debug(d)
     return d

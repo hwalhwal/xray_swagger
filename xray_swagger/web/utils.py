@@ -11,16 +11,16 @@ class PatchRevertUnsuccessful(Exception):
     ...
 
 
-def make_patch_text(a: Any, b: Any) -> LiteralString:
-    a = json.dumps(a)
-    b = json.dumps(a)
+def make_patch_text(old: Any, new: Any) -> LiteralString:
+    old = json.dumps(old)
+    new = json.dumps(new)
 
     print("SHOW TWO ITEMS".center(60, "*"))
-    print(f"{a=}")
-    print(f"{b=}")
+    print(f"{old=}")
+    print(f"{new=}")
 
-    print("PATCH a->b".center(60, "*"))
-    patches = dmp.patch_make(a, b)
+    print("  PATCH old -> new  ".center(60, "*"))
+    patches = dmp.patch_make(old, new)
     patches_text = dmp.patch_toText(patches)
     return patches_text
 
