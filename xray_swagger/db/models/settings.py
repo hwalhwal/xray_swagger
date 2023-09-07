@@ -1,4 +1,15 @@
-from sqlalchemy import JSON, Column, Enum, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Column,
+    Enum,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    Integer,
+    PrimaryKeyConstraint,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 
 import xray_swagger.db.models.mixins as mixins
@@ -41,13 +52,26 @@ class SettingsGlobal(mixins._ModifiedAt, mixins._LastEditorId, Base):
 
 
 class SettingsProductChangelog(mixins._CreatedAt, mixins._LastEditorId, Base):
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    product_id = Column(Integer, nullable=False)
+    setting_param_name = Column(String(255), nullable=False)
     version = Column(Integer, nullable=False)
-    product_id = Column(Integer, ForeignKey("product.id"), nullable=False)
-    settings_product_id = Column(
-        Integer,
-        ForeignKey("settings_product.id"),
-        nullable=False,
-    )
+
     settings_product = relationship(SettingsProduct, back_populates="changelogs")
     patch = Column(Text, nullable=False)
+    __table_args__ = (
+        ForeignKeyConstraint(
+            (product_id, setting_param_name),
+            (
+                SettingsProduct.product_id,
+                SettingsProduct.setting_param_name,
+            ),
+        ),
+        PrimaryKeyConstraint(product_id, setting_param_name, version),
+        Index(
+            "idx_settings_product_changelog",
+            product_id,
+            setting_param_name,
+            version,
+            unique=True,
+        ),
+    )
